@@ -3,12 +3,17 @@
   "main": "src/index.ts",
   "dependencies": {
     "@sapphire/framework": "latest",
-    "discord.js": "14.x"
+    "discord.js": "14.x",
+    "dotenv": "^16.4.5",
+    "ts-node": "^10.9.2"
   },
   "scripts": {
-    "start": "node src/index.ts"
+    "start": "npx ts-node src/index.ts"
   },
   "devDependencies": {
-    "@sapphire/ts-config": "^5.0.1"
+    "@sapphire/ts-config": "^5.0.1",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.9",
+    "typescript": "^5.5.2"
   }
 }
