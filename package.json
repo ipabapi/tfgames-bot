@@ -6,6 +6,7 @@
     "@sapphire/plugin-subcommands": "^6.0.3",
     "discord.js": "14.x",
     "dotenv": "^16.4.5",
+    "mongodb": "^6.7.0",
     "ts-node": "^10.9.2"
   },
   "scripts": {
