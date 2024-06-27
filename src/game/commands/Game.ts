@@ -36,6 +36,8 @@ export class UserCommand extends Subcommand {
                         .addUserOption((option) =>
                             option.setName('user').setDescription('user to add to game').setRequired(true)
                         )
+                        .addStringOption((option) =>
+                            option.setName('nickname').setDescription("nickname this user will have inGame").setRequired(true))
                 )
                 .addSubcommand((command) =>
                     command
@@ -46,13 +48,15 @@ export class UserCommand extends Subcommand {
     }
 
     public async createGame(interaction: Subcommand.ChatInputCommandInteraction) {
-       await interaction.reply({ content: `Game has been created!`, ephemeral: true, fetchReply: true });
-
+        await interaction.reply({ content: `Creating Game`, ephemeral: true, fetchReply: true });
+       //Wait for the db to create the game
+        return interaction.editReply(`Game was successfully created`);
     }
 
     public async joinGame(interaction: Subcommand.ChatInputCommandInteraction) {
         const user = interaction.options.getUser('user', true);
-        await interaction.reply({ content: `User ${user} joined the game`, ephemeral: true, fetchReply: true });
+        const nick = interaction.options.getString('nickname', true);
+        await interaction.reply({ content: `User ${user} joined the game as ${nick}`, ephemeral: true, fetchReply: true });
 
     }
 
