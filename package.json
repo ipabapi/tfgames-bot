@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@sapphire/framework": "^5.2.1",
+    "discord.js": "^14.15.3"
+  },
+  "devDependencies": {
+    "@sapphire/ts-config": "^5.0.1"
+  }
+}
