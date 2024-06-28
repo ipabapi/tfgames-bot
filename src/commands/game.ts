@@ -20,6 +20,7 @@ export class GameCommand extends Subcommand {
                     name: 'join',
                     messageRun: 'join',
                     chatInputRun: 'join',
+                    default: true,
                 },
                 {
                     name: 'leave',
