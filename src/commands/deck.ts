@@ -1,6 +1,11 @@
 // This file is to declare user settings for the bot
 
 import { Subcommand } from "@sapphire/plugin-subcommands";
+import {
+    ButtonBuilder,
+    ButtonStyle,
+    EmbedBuilder
+} from 'discord.js';
 
 export class DeckCommand extends Subcommand {
     constructor(context: Subcommand.LoaderContext, options: Subcommand.Options) {
@@ -11,12 +16,102 @@ export class DeckCommand extends Subcommand {
             subcommands: [
                 {
                     name: 'view',
-                    messageRun: 'view',
-                    chatInputRun: 'view',
+                    messageRun: 'deckView',
+                    chatInputRun: 'deckView',
+                    default: true
+                },
+                {
+                    name: 'edit',
+                    messageRun: 'deckEdit',
+                    chatInputRun: 'deckEdit'
+                },
+                {
+                    name: 'delete',
+                    messageRun: 'deckDelete'
+                },
+                {
+                    name: 'create',
+                    messageRun: 'deckCreate'
                 }
             ]
         });
 
     }
+
+    override registerApplicationCommands(registry: Subcommand.Registry) {
+        registry.registerChatInputCommand((builder) =>
+            builder
+                .setName('deck')
+                .setDescription('Edit, view, delete, or create a deck.') // Needed even though base command isn't displayed to end user
+                .addSubcommand((command) => 
+                    command.setName('view')
+                        .setDescription('Shows the selected deck')
+                        .addStringOption((option) => 
+                            option.setName('name').setDescription('Name of the deck to view').setRequired(true)))
+                .addSubcommand((command) =>
+                    command
+                        .setName('edit')
+                        .setDescription('Edits the selected deck')
+                        .addStringOption((option) => 
+                            option.setName('name').setDescription('Name of the deck to edit').setRequired(true))
+                )
+                .addSubcommand((command) =>
+                    command
+                        .setName('delete')
+                        .setDescription('Remove a deck')
+                        .addStringOption((option) =>
+                            option.setName('name').setDescription('Name of the deck to edit').setRequired(true)
+                        )
+                )
+                .addSubcommand((command) =>
+                    command
+                        .setName('create')
+                        .setDescription('Creates a deck with the provided Name')
+                        .addStringOption((option) =>
+                            option.setName('name').setDescription('Name of the deck to create').setRequired(true)
+                        )
+                )
+        );
+        
+    }
+
+    public async deckView(interaction: Subcommand.ChatInputCommandInteraction) {
+        const deckName = interaction.options.getString('name')
+        await interaction.reply({ content: `## Viewing Deck: ${deckName}\n- Shield - x1\n- Reverse - x2`, ephemeral: false, fetchReply: true });
+        
+    }
+
+    public async deckEdit(interaction: Subcommand.ChatInputCommandInteraction) {
+        const deckName = interaction.options.getString('name')
+        const exampleEmbed = new EmbedBuilder()
+            .setColor(0x0099FF)
+            .setTitle(`Editing Deck: ${deckName}`)
+            .setAuthor({ name: 'TF Bot', iconURL: 'https://i.imgur.com/8jHdyut.png'})
+            .setDescription('*Your deck currently contains:*\n- Shield - x1\n- Reverse - x2')
+            .addFields(
+                { name: 'Capacity', value: '3/30' },
+                { name: '\u200B', value: '\u200B' },
+                { name: 'Collection', value: '*Reverse* - **Shield - 5x** - *Body TF*', inline: true },
+            )
+            .setImage('https://i.imgur.com/oGQRtdD.png')
+            .setTimestamp();
+        
+        await interaction.reply({embeds: [exampleEmbed.toJSON()],ephemeral: true});
+        
+        // @ts-ignore
+        const confirm = new ButtonBuilder()
+            .setCustomId('confirm')
+            .setLabel('Confirm Ban')
+            .setStyle(ButtonStyle.Danger)
+            .toJSON();
+
+        // @ts-ignore
+        const cancel = new ButtonBuilder()
+            .setCustomId('cancel')
+            .setLabel('Cancel')
+            .setStyle(ButtonStyle.Secondary)
+            .toJSON();
+    }
+
 
 }
