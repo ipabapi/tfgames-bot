@@ -126,6 +126,4 @@ export class DeckCommand extends Subcommand {
         await interaction.reply(msg);
         
     }
-
-
 }
