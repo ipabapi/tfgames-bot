@@ -6,6 +6,7 @@ import {
     ButtonStyle,
     EmbedBuilder
 } from 'discord.js';
+import {container} from "@sapphire/framework";
 
 export class DeckCommand extends Subcommand {
     constructor(context: Subcommand.LoaderContext, options: Subcommand.Options) {
@@ -27,11 +28,18 @@ export class DeckCommand extends Subcommand {
                 },
                 {
                     name: 'delete',
-                    messageRun: 'deckDelete'
+                    messageRun: 'deckDelete',
+                    chatInputRun: 'deckDelete'
                 },
                 {
                     name: 'create',
-                    messageRun: 'deckCreate'
+                    messageRun: 'deckCreate',
+                    chatInputRun: 'deckCreate'
+                },
+                {
+                    name: 'list',
+                    messageRun: 'deckList',
+                    chatInputRun: 'deckList'
                 }
             ]
         });
@@ -71,6 +79,11 @@ export class DeckCommand extends Subcommand {
                             option.setName('name').setDescription('Name of the deck to create').setRequired(true)
                         )
                 )
+                .addSubcommand((command) =>
+                    command
+                        .setName('list')
+                        .setDescription('List all of your decks')
+                )
         );
         
     }
@@ -102,16 +115,75 @@ export class DeckCommand extends Subcommand {
         const confirm = new ButtonBuilder()
             .setCustomId('confirm')
             .setLabel('Confirm Ban')
-            .setStyle(ButtonStyle.Danger)
-            .toJSON();
+            .setStyle(ButtonStyle.Danger);
 
         // @ts-ignore
         const cancel = new ButtonBuilder()
             .setCustomId('cancel')
             .setLabel('Cancel')
-            .setStyle(ButtonStyle.Secondary)
-            .toJSON();
+            .setStyle(ButtonStyle.Secondary);
+
+        //const row = new ActionRowBuilder()
+
+        //await interaction.reply({components: row.toJSON()});
     }
 
+    public async deckCreate(interaction: Subcommand.ChatInputCommandInteraction) {
+        const deckName = interaction.options.getString('name')
+        await interaction.reply({ content: `Creating Deck ${deckName}`, ephemeral: true, fetchReply: true });
+            
+            // check if deck already exists
+            // @ts-ignore
+            var query = { player: interaction.member.id, name: deckName};
+            // @ts-ignore
+            var result = await container.mongoClient.db('test').collection('deck').find(query)
+            if ((await result.toArray()).length == 0 ) {
+            // @ts-ignore
+            container.mongoClient.db('test').collection('deck').insertOne({ player: interaction.member.id, name : deckName, cardIds: []});
+            interaction.editReply({content:`Deck ${deckName} successfully created`})
+            } else{
+                interaction.editReply({content:`Unable to create Deck ${deckName}. Deck with same name registered to same player already exists`});
+            }
+        
+
+    }
+
+    public async deckDelete(interaction: Subcommand.ChatInputCommandInteraction) {
+        const deckName = interaction.options.getString('name')
+        await interaction.reply({ content: `Deleting Deck ${deckName}`, ephemeral: true, fetchReply: true });
+
+        // check if deck already exists
+        // @ts-ignore
+        var query = { player: interaction.member.id, name: deckName};
+        // @ts-ignore
+        var result = await container.mongoClient.db('test').collection('deck').find(query)
+        if ((await result.toArray()).length != 0 ) {
+            // @ts-ignore
+            container.mongoClient.db('test').collection('deck').deleteMany({ player: interaction.member.id, name : deckName});
+            interaction.editReply({content:`Deck ${deckName} successfully deleted`})
+        } else{
+            interaction.editReply({content:`Unable to delete Deck ${deckName}. Does not exist.`});
+        }
+
+
+    }
+    
+    public async deckList(interaction: Subcommand.ChatInputCommandInteraction) {
+        // @ts-ignore
+        var query = { player: interaction.member.id };
+        // @ts-ignore
+        var result = await container.mongoClient.db('test').collection('deck').find(query)
+        
+        // @ts-ignore
+        var deckListString = `## Deck List for ${interaction.member.toString()}\n`
+        for (const deck of await result.toArray()) {
+            deckListString += deck.name + "\n";
+        }
+        
+        //interaction.editReply({content:`Unable to create Deck ${deckName}`});
+        interaction.reply({content: deckListString, ephemeral: true})
+
+
+    }
 
 }
