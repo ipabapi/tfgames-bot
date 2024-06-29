@@ -3,6 +3,7 @@
 import { Subcommand } from "@sapphire/plugin-subcommands";
 import { MessageBuilder } from "@sapphire/discord.js-utilities";
 
+
 export class DeckCommand extends Subcommand {
     constructor(context: Subcommand.LoaderContext, options: Subcommand.Options) {
         super(context, {
@@ -23,11 +24,18 @@ export class DeckCommand extends Subcommand {
                 },
                 {
                     name: 'delete',
-                    messageRun: 'deckDelete'
+                    messageRun: 'deckDelete',
+                    chatInputRun: 'deckDelete'
                 },
                 {
                     name: 'create',
-                    messageRun: 'deckCreate'
+                    messageRun: 'deckCreate',
+                    chatInputRun: 'deckCreate'
+                },
+                {
+                    name: 'list',
+                    messageRun: 'deckList',
+                    chatInputRun: 'deckList'
                 }
             ]
         });
@@ -66,6 +74,11 @@ export class DeckCommand extends Subcommand {
                         .addStringOption((option) =>
                             option.setName('name').setDescription('Name of the deck to create').setRequired(true)
                         )
+                )
+                .addSubcommand((command) =>
+                    command
+                        .setName('list')
+                        .setDescription('List all of your decks')
                 )
         );
         
