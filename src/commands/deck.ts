@@ -1,12 +1,8 @@
 // This file is to declare user settings for the bot
 
 import { Subcommand } from "@sapphire/plugin-subcommands";
-import {
-    ButtonBuilder,
-    ButtonStyle,
-    EmbedBuilder
-} from 'discord.js';
 import {container} from "@sapphire/framework";
+import {MessageBuilder} from "@sapphire/discord.js-utilities";
 
 export class DeckCommand extends Subcommand {
     constructor(context: Subcommand.LoaderContext, options: Subcommand.Options) {
@@ -96,36 +92,52 @@ export class DeckCommand extends Subcommand {
 
     public async deckEdit(interaction: Subcommand.ChatInputCommandInteraction) {
         const deckName = interaction.options.getString('name')
-        const exampleEmbed = new EmbedBuilder()
-            .setColor(0x0099FF)
-            .setTitle(`Editing Deck: ${deckName}`)
-            .setAuthor({ name: 'TF Bot', iconURL: 'https://i.imgur.com/8jHdyut.png'})
-            .setDescription('*Your deck currently contains:*\n- Shield - x1\n- Reverse - x2')
-            .addFields(
-                { name: 'Capacity', value: '3/30' },
-                { name: '\u200B', value: '\u200B' },
-                { name: 'Collection', value: '*Reverse* - **Shield - 5x** - *Body TF*', inline: true },
-            )
-            .setImage('https://i.imgur.com/oGQRtdD.png')
-            .setTimestamp();
-        
-        await interaction.reply({embeds: [exampleEmbed.toJSON()],ephemeral: true});
-        
-        // @ts-ignore
-        const confirm = new ButtonBuilder()
-            .setCustomId('confirm')
-            .setLabel('Confirm Ban')
-            .setStyle(ButtonStyle.Danger);
+        const msg = new MessageBuilder()
+            .setEmbeds([
+                {
+                    title: `Editing Deck: ${deckName}`,
+                    description: '*Your deck currently contains:*\n- Shield - x1\n- Reverse - x2',
+                    fields: [
+                        { name: 'Capacity', value: '3/30' },
+                        { name: '\u200B', value: '\u200B' },
+                        { name: 'Collection', value: '*Reverse* - **Shield - 5x** - *Body TF*', inline: true },
+                    ],
+                    image: { url: 'https://i.imgur.com/oGQRtdD.png' },
+                    color: 0x0099FF,
+                }])
+            .setComponents([
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 2,
+                            style: 2,
+                            custom_id: 'back',
+                            label: '⮜',
+                        },
+                        {
+                            type: 2,
+                            style: 3,
+                            custom_id: 'Add',
+                            label: 'Include',
+                        },
+                        {
+                            type: 2,
+                            style:4,
+                            custom_id: 'Remove',
+                            label: 'Remove',
+                        },
+                        {
+                            type: 2,
+                            style: 2,
+                            custom_id: 'forward',
+                            label: '⮞',
+                        }
+                    ],
+                }])
 
-        // @ts-ignore
-        const cancel = new ButtonBuilder()
-            .setCustomId('cancel')
-            .setLabel('Cancel')
-            .setStyle(ButtonStyle.Secondary);
+        await interaction.reply(msg);
 
-        //const row = new ActionRowBuilder()
-
-        //await interaction.reply({components: row.toJSON()});
     }
 
     public async deckCreate(interaction: Subcommand.ChatInputCommandInteraction) {
