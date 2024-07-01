@@ -4,24 +4,11 @@ import { ObjectId } from 'mongodb';
 
 
 export interface Player {
-    _id: ObjectId;
+    _id?: ObjectId;
     userId: string; // discord user id
-    games: string[]; // the games the player is in, if any, will be a list of game id or else this will take forever to load
-    gold: number; // the amount of gold the player has
-    inventory: Inventory; // the items the player has
     characters: string[]; // the characters the player has, if any, will be a list of character id or else this will take forever to load
     preferences: PlayerPreferences; // the preferences of the player, this is their base preferences, the character preferences will override this
-    blocked: string[]; // the players the player has blocked, if the blocked player tries to join a game the player is in, the game will refuse
-    permaCollared: boolean; // if the player is permanently collared, this will be a high price item for the shop
-    collarOwner: string | null; // the player that collared the player, if any
-    timeout: {
-        timeoutScheduled: boolean; // if a timeout is scheduled
-        timeoutTime: Date | null; // the time the timeout is scheduled
-        timeoutDuration: number; // the duration of the timeout
-        timeoutRepeat: boolean; // if the timeout is repeatable
-        timeoutRepeatCondition: string | null; // the condition for the timeout to repeat
-        //TODO: Figure out how to set the timeout to weekdays
-    }
+    guilds: { [key: string]: PlayerGuildInfo }; // the guilds the player is in, if any, will be a list of guild id or else this will take forever to load   
 }
 
 
@@ -38,18 +25,15 @@ export enum PreferenceChart {
 }
 
 export interface PlayerPreferences {
-    TF: PreferenceChart;
-    SYSTEM: PreferenceChart;
-    GOLD: PreferenceChart;
-    ITEM: PreferenceChart;
-    OTHER: PreferenceChart;
-    FAVORED: string[]; // The player's favored tags, these will be used to determine what cards they will get from booster packs, and what cards others can play on them. The player can have up to 5 favored tags.
-    DISLIKED: string[]; // The player's disfavored tags, these will be used to determine what cards they will get from booster packs, and what cards others can play on them. The player can have up to 5 disfavored tags.
-    //TODO: Change this to more robust consent system, at work right now so can't think of it and shouldn't be writing out a list of tags in this atm.
+    FAVORED: string[];
+    NEUTRAL: string[];
+    DISLIKED: string[];
+    ASKFIRST: string[];
+    HARDNO: string[];
 }
 
 export interface Character {
-    _id: ObjectId;
+    _id?: ObjectId;
     name: string; // the name of the character
     avatar: string; // the avatar of the character
     description: string; // the description of the character
@@ -66,16 +50,37 @@ export interface Character {
     locked: boolean; // if the character is locked
     badEnd: boolean; // if the character has a bad end
     mode: CharacterMode; // the mode of the character
+    creator: string; // the player that created the character
+    guilds: string[]; // the guilds the character is in, if any, will be a list of guild id or else this will take forever to load
     preferences: PlayerPreferences; // the preferences of the character, this will override the player's preferences, NOTE: The player's preferences will be used if the character's preferences are not set, if a collar owner tries to change a NO preference to a different preference, the collared will be prompted to accept or deny the change, if they deny, the collared will then be prompted to accept or deny the collar removal, if they deny, the collar will remain on the character, if they accept, the collar will be removed and the collar owner will be reported to the server admin for disciplinary action.
 }
 
+export interface PlayerGuildInfo {
+    // This is per guild, so the player can have different settings for different guilds
+    games: string[]; // the games the player is in, if any, will be a list of game id or else this will take forever to load
+    gold: number; // the amount of gold the player has
+    inventory: Inventory; // the items the player has
+    blocked: string[]; // the players the player has blocked, if the blocked player tries to join a game the player is in, the game will refuse
+    permaCollared: boolean; // if the player is permanently collared, this will be a high price item for the shop
+    collarOwner: string | null; // the player that collared the player, if any
+    timeout?: {
+        timeoutScheduled: boolean; // if a timeout is scheduled
+        timeoutTime: Date | null; // the time the timeout is scheduled
+        timeoutDuration: number; // the duration of the timeout
+        timeoutRepeat: boolean; // if the timeout is repeatable
+        timeoutRepeatCondition: string | null; // the condition for the timeout to repeat
+        //TODO: Figure out how to set the timeout to weekdays
+    }
+}
+
 export interface Game {
-    _id: ObjectId;
+    _id?: ObjectId;
     players: { [key: string]: Character }; // the players in the game
     channel: string; // the discord channel id
     inThread: boolean; // if the game is in a thread
     threadId: string | null; // the thread id
     state: GameState; // the state of the game
+    gameMode: GameMode; // the mode of the game
 }
 
 export interface Inventory {
@@ -91,7 +96,7 @@ export interface Inventory {
 }
 
 export interface GameState {
-    currentPlayer: Player; // the player whose turn it is
+    currentPlayer: Player | null; // the player whose turn it is
     turnOrder: Player[]; // the order of the players
     deck: Card[]; // the deck of cards
     discard: Card[]; // the discard pile
