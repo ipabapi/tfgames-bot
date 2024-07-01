@@ -168,18 +168,18 @@ export class CharacterCommand extends Subcommand {
 								message.channel.send("That's okay! We can always add one later. How would you describe your character?");
 							} else {
 								// Check if user provided an attachment
-                                if (message.attachments.size > 0) {
-                                    // @ts-ignore
-                                    character.avatar = message.attachments.first().url;
-                                } else {
-                                    // Check if user provided a URL
-                                    if (message.content.startsWith('http')) {
-                                        character.avatar = message.content;
-                                    } else {
-                                        message.channel.send('I need an image or URL. Please try again.');
-                                        return;
-                                    }
-                                }
+								if (message.attachments.size > 0) {
+									// @ts-ignore
+									character.avatar = message.attachments.first().url;
+								} else {
+									// Check if user provided a URL
+									if (message.content.startsWith('http')) {
+										character.avatar = message.content;
+									} else {
+										message.channel.send('I need an image or URL. Please try again.');
+										return;
+									}
+								}
 								currentStep++;
 								message.channel.send('Great! How would you describe your character?');
 							}
@@ -195,7 +195,7 @@ export class CharacterCommand extends Subcommand {
 											{
 												title: 'Difficulty Selection',
 												description:
-													'Okay, last step! Please select the difficulty you would like to play on.\n\n- **Normal**: Base mode, character can gain and store gold, as well as use items.\n- **Hard**: Character cannot gain or store gold, but can use items.\n- **Harder**: Character *CAN* gain and store gold, but cannot use items.\n- **Very Hard**: Character cannot gain or store gold, and cannot use items.\n**Nightmare**: Character cannot gain or store gold, cannot use items, and will rely on the bot to draw for them, as well as decide if they pass, reroll, or play.\n\nPlease select a difficulty.',
+													'Okay, last step! Please select the difficulty you would like to play on.\n\n- **Normal**: Base mode, character can gain and store gold, as well as use items.\n- **Hard**: Character cannot gain or store gold, but can use items.\n- **Harder**: Character *CAN* gain and store gold, but cannot use items.\n- **Very Hard**: Character cannot gain or store gold, and cannot use items.\n- **Nightmare**: Character cannot gain or store gold, cannot use items, and will rely on the bot to draw for them, as well as decide if they pass, reroll, or play.\n\nPlease select a difficulty.',
 												color: 0x00ff00
 											}
 										])
@@ -241,16 +241,29 @@ export class CharacterCommand extends Subcommand {
 										character.mode = difficulties[i.values[0]];
 										character.creator = interaction.user.id;
 										success = true;
-										const newCharaId = await this.container.mongoClient.db('test').collection('characters').insertOne(character);
-										const successCheck = await this.container.mongoClient
-											.db('test')
-											.collection('users')
-                                            // @ts-ignore
-											.updateOne({ userId: interaction.user.id }, { $push: { characters: newCharaId.insertedId.toString() } });
-										if (successCheck.modifiedCount === 1) {
-											message.channel.send('Character creation complete! You can now use this character in games.');
-										} else {
-											message.channel.send('Character creation failed. Please try again.');
+										try {
+											const newCharaId = await this.container.mongoClient
+												.db('test')
+												.collection('characters')
+												.insertOne(character);
+											const successCheck = await this.container.mongoClient
+												.db('test')
+												.collection('users')
+												.updateOne(
+													{ userId: interaction.user.id },
+													// @ts-ignore
+													{ $push: { characters: newCharaId.insertedId.toString() } }
+												);
+											if (successCheck.modifiedCount === 1) {
+												message.channel.send('Character creation complete! You can now use this character in games.');
+											} else {
+												message.channel.send('Character creation failed. Please try again.');
+											}
+										} catch (err) {
+											console.error(err);
+											message.channel.send(
+												'Character creation failed! It was on our end, not yours. Please try again in a bit.'
+											);
 										}
 										m.delete();
 
@@ -294,10 +307,6 @@ export class CharacterCommand extends Subcommand {
 	}
 
 	public async delete(interaction: Subcommand.ChatInputCommandInteraction) {
-		await interaction.reply('delete');
-	}
-
-	public async list(interaction: Subcommand.ChatInputCommandInteraction) {
 		// Check if the user is in the database
 		const user = await this.container.mongoClient.db('test').collection('users').findOne({ userId: interaction.user.id });
 		if (!user) {
@@ -305,9 +314,56 @@ export class CharacterCommand extends Subcommand {
 			return;
 		}
 
-		const characters = await this.container.mongoClient.db('test').collection('characters').find({ creator: interaction.user.id }).toArray();
+		// check if the character exists
+		const character = await this.container.mongoClient
+			.db('test')
+			.collection('characters')
+			.findOne({ name: interaction.options.getString('name'), creator: interaction.user.id });
+		if (!character) {
+			interaction.reply({ content: "I'm sorry, I couldn't find a character with that name.", ephemeral: true });
+			return;
+		} else {
+			const result = await this.container.mongoClient
+				.db('test')
+				.collection('characters')
+				.deleteOne({ name: interaction.options.getString('name'), creator: interaction.user.id });
+			if (result.deletedCount === 1) {
+				const newCharaList = user.characters.filter((c: string) => c !== character._id.toString());
+				await this.container.mongoClient
+					.db('test')
+					.collection('users')
+					.updateOne({ userId: interaction.user.id }, { $set: { characters: newCharaList } });
+				interaction.reply({ content: 'Character deleted successfully!', ephemeral: true });
+			} else {
+				interaction.reply({ content: "I'm sorry, I couldn't delete that character. Please try again.", ephemeral: true });
+			}
+		}
+	}
+
+	public async list(interaction: Subcommand.ChatInputCommandInteraction) {
+		// Check if the user is in the database
+		let user;
+		if (interaction.options.getUser('user')) {
+			user = await this.container.mongoClient
+				.db('test')
+				.collection('users')
+                // @ts-ignore
+				.findOne({ userId: interaction.options.getUser('user').id });
+			if (!user) {
+				interaction.reply({ content: "I'm sorry, I couldn't find that user in the database.", ephemeral: true });
+				return;
+			}
+		} else {
+			user = await this.container.mongoClient.db('test').collection('users').findOne({ userId: interaction.user.id });
+			if (!user) {
+				interaction.reply({ content: "I'm sorry, you need to set up your account first. Please use the /setup command.", ephemeral: true });
+				return;
+			}
+		}
+
+		const characters = await this.container.mongoClient.db('test').collection('characters').find({ creator: user.userId }).toArray();
 		if (characters.length === 0) {
-			interaction.reply({ content: "You don't have any characters yet! Use /character create to make one.", ephemeral: true });
+			interaction.reply({ content: `${user.userId == interaction.user.id ? "You don't" : "This user doesn't"} have any characters yet! Use /character create to make one.`, ephemeral: true });
 			return;
 		}
 
@@ -318,11 +374,12 @@ export class CharacterCommand extends Subcommand {
 				value: c.description
 			};
 		});
-
+        // get user name if it's not the author
+        const username = interaction.options.getUser('user')?.displayName || interaction.user.username;
 		interaction.reply({
 			embeds: [
 				{
-					title: 'Your Characters',
+					title: `${username}\'s Characters`,
 					fields: charList,
 					footer: {
 						text: 'Use /character info <name> to get more information about a character.'
