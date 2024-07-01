@@ -1,0 +1,379 @@
+[
+    {
+        "stringID": "card_0001",
+        "name": "Body Transformation",
+        "description": "",
+        "effect": {
+            "tags": [
+                "body",
+                "single-target",
+                "transformation",
+                "general",
+                "basic"
+            ],
+            "action": "transform",
+            "singleTarget": true,
+            "targetSelf": true,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "TF",
+        "rarity": "UNCOMMON"
+    },
+    {
+        "stringID": "card_0002",
+        "name": "Mind Transformation",
+        "description": "",
+        "effect": {
+            "tags": [
+                "mind",
+                "single-target",
+                "transformation",
+                "general",
+                "basic"
+            ],
+            "action": "transform",
+            "singleTarget": true,
+            "targetSelf": true,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "TF",
+        "rarity": "UNCOMMON"
+    },
+    {
+        "stringID": "card_0003",
+        "name": "Name Change",
+        "description": "",
+        "effect": {
+            "tags": [
+                "name",
+                "single-target",
+                "transformation",
+                "general",
+                "basic"
+            ],
+            "action": "transform",
+            "singleTarget": true,
+            "targetSelf": true,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "TF",
+        "rarity": "UNCOMMON"
+    },
+    {
+        "stringID": "card_0004",
+        "name": "Inanimate Transformation",
+        "description": "",
+        "effect": {
+            "tags": [
+                "inanimate",
+                "single-target",
+                "transformation",
+                "general",
+                "basic"
+            ],
+            "action": "transform",
+            "singleTarget": true,
+            "targetSelf": true,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "TF",
+        "rarity": "UNCOMMON"
+    },
+    {
+        "stringID": "card_0005",
+        "name": "Absorption",
+        "description": "",
+        "effect": {
+            "tags": [
+                "absorption",
+                "single-target",
+                "transformation",
+                "general",
+                "basic"
+            ],
+            "action": "transform",
+            "singleTarget": true,
+            "targetSelf": true,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "TF",
+        "rarity": "UNCOMMON"
+    },
+    {
+        "stringID": "card_0006",
+        "name": "Body Swap",
+        "description": "",
+        "effect": {
+            "tags": [
+                "body",
+                "single-target",
+                "transformation",
+                "general",
+                "basic"
+            ],
+            "action": "transform",
+            "singleTarget": true,
+            "targetSelf": false,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "TF",
+        "rarity": "UNCOMMON"
+    },
+    {
+        "stringID": "card_0007",
+        "name": "Cleanse",
+        "description": "",
+        "effect": {
+            "tags": [
+                "cleanse",
+                "single-target",
+                "item",
+                "general"
+            ],
+            "action": "item",
+            "singleTarget": true,
+            "targetSelf": true,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "ITEM",
+        "rarity": "UNCOMMON"
+    },
+    {
+        "stringID": "card_0008",
+        "name": "Fail",
+        "description": "",
+        "effect": {
+            "tags": [
+                "fail",
+                "single-target",
+                "transformation",
+                "general",
+                "basic"
+            ],
+            "action": "transform",
+            "singleTarget": true,
+            "targetSelf": true,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "SYSTEM",
+        "rarity": "LEGENDARY"
+    },
+    {
+        "stringID": "card_0009",
+        "name": "Luck",
+        "description": "",
+        "effect": {
+            "tags": [
+                "luck",
+                "single-target",
+                "transformation",
+                "general",
+                "basic"
+            ],
+            "action": "transform",
+            "singleTarget": true,
+            "targetSelf": true,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "SYSTEM",
+        "rarity": "LEGENDARY"
+    },
+    {
+        "stringID": "card_0010",
+        "name": "Shield",
+        "description": "",
+        "effect": {
+            "tags": [
+                "shield",
+                "single-target",
+                "item",
+                "general",
+                "basic"
+            ],
+            "action": "item",
+            "singleTarget": true,
+            "targetSelf": true,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "ITEM",
+        "rarity": "UNCOMMON"
+    },
+    {
+        "stringID": "card_0011",
+        "name": "Reverse",
+        "description": "",
+        "effect": {
+            "tags": [
+                "reverse",
+                "single-target",
+                "item",
+                "general"
+            ],
+            "action": "item",
+            "singleTarget": true,
+            "targetSelf": true,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "ITEM",
+        "rarity": "UNCOMMON"
+    },
+    {
+        "stringID": "card_0012",
+        "name": "Reverse",
+        "description": "",
+        "effect": {
+            "tags": [
+                "reverse",
+                "single-target",
+                "item",
+                "general"
+            ],
+            "action": "item",
+            "singleTarget": true,
+            "targetSelf": true,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "ITEM",
+        "rarity": "UNCOMMON"
+    },
+    {
+        "stringID": "card_0013",
+        "name": "Steal",
+        "description": "",
+        "effect": {
+            "tags": [
+                "steal",
+                "single-target",
+                "item",
+                "general"
+            ],
+            "action": "item",
+            "singleTarget": true,
+            "targetSelf": true,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "ITEM",
+        "rarity": "UNCOMMON"
+    },
+    {
+        "stringID": "card_0014",
+        "name": "10 Gold",
+        "description": "",
+        "effect": {
+            "tags": [
+                "gold",
+                "single-target",
+                "item",
+                "general"
+            ],
+            "action": "10",
+            "singleTarget": true,
+            "targetSelf": true,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "ITEM",
+        "rarity": "UNCOMMON"
+    },
+    {
+        "stringID": "card_0015",
+        "name": "20 Gold",
+        "description": "",
+        "effect": {
+            "tags": [
+                "gold",
+                "single-target",
+                "item",
+                "general"
+            ],
+            "action": "20",
+            "singleTarget": true,
+            "targetSelf": true,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "ITEM",
+        "rarity": "UNCOMMON"
+    },
+    {
+        "stringID": "card_0016",
+        "name": "30 Gold",
+        "description": "",
+        "effect": {
+            "tags": [
+                "gold",
+                "single-target",
+                "item",
+                "general"
+            ],
+            "action": "30",
+            "singleTarget": true,
+            "targetSelf": true,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "ITEM",
+        "rarity": "UNCOMMON"
+    }
+]

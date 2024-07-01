@@ -1,6 +1,6 @@
 import { Subcommand } from "@sapphire/plugin-subcommands";
 // import { container } from "@sapphire/framework";
-
+import { Message, MessageCollector } from "discord.js";
 
 export class CharacterCommand extends Subcommand {
     public constructor(context: Subcommand.LoaderContext, options: Subcommand.Options = {}) {
@@ -125,6 +125,55 @@ export class CharacterCommand extends Subcommand {
     }
 
     public async create(interaction: Subcommand.ChatInputCommandInteraction) {
+        // Send DM to user to begin character creation
+        let successful = false;
+        interaction.user.send("Hello! Let's create a character! What is the name of your character?")
+        .then(async (msg) => {
+            let currentStep = 0;
+            const collector = new MessageCollector(msg.channel, {filter: (m => m.author.id == interaction.user.id), time: 60000});
+            collector.on('collect', async (message: Message) => {
+                switch (currentStep) {
+                    case 0:
+                        // Name
+                        const name = message.content;
+                        currentStep++;
+                        console.log(name, currentStep, msg.author.id);
+                        message.channel.send(`Great! Your character's name is ${name}. What is your character's description?`);
+                        break;
+                    case 1:
+                        // Description
+                        const description = message.content;
+                        currentStep++;
+                        console.log(description, currentStep, msg.author.id);
+                        message.channel.send(`Awesome! Your character's description is ${description}.`);
+                        break;
+                    default:
+                        message.channel.send("I'm sorry, I didn't understand that. Please try again.");
+                        console.error("Invalid step reached in character creation.");
+                        successful = false;
+                        collector.stop();
+                        break;
+                }
+                if (currentStep > 1) {
+                    successful = true;
+                    collector.stop();
+                }
+            }
+            );
+
+            collector.on('end', (collected) => {
+                if (!successful) {
+                    msg.channel.send("Character creation timed out. Please try again.");
+                }
+                console.log(`Collected ${collected.size} messages. Successful: ${successful}. ${JSON.stringify(collected)}`);
+            }
+        );
+        })
+        .catch((err) => {
+            console.error(err);
+            interaction.reply("I'm sorry, I couldn't send you a DM. Please make sure your DMs are open and try again.");
+        });
+        
         await interaction.reply("create");
     }
 
@@ -133,11 +182,8 @@ export class CharacterCommand extends Subcommand {
     }
 
     public async list(interaction: Subcommand.ChatInputCommandInteraction) {
+        
         await interaction.reply("list");
 
-    }
-
-    public async help(interaction: Subcommand.ChatInputCommandInteraction) {
-        await interaction.reply("help");
     }
 }
