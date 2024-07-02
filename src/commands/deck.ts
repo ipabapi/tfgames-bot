@@ -1,6 +1,6 @@
 // This file is to declare user settings for the bot
 
-import { Subcommand } from "@sapphire/plugin-subcommands";
+import {Subcommand} from "@sapphire/plugin-subcommands";
 import {container} from "@sapphire/framework";
 import {MessageBuilder} from "@sapphire/discord.js-utilities";
 
@@ -86,7 +86,23 @@ export class DeckCommand extends Subcommand {
 
     public async deckView(interaction: Subcommand.ChatInputCommandInteraction) {
         const deckName = interaction.options.getString('name')
-        await interaction.reply({ content: `## Viewing Deck: ${deckName}\n- Shield - x1\n- Reverse - x2`, ephemeral: false, fetchReply: true });
+        // @ts-ignore
+        var query = { player: interaction.member.id, name: deckName };
+        // @ts-ignore
+        var dbResult = await container.mongoClient.db('test').collection('deck').find(query)
+
+        var result = await dbResult.toArray()
+        var deckStrings = '';
+        // @ts-ignore
+        const {cardIds} = result[0];
+        for (let cardId in cardIds) {
+            var card = await container.mongoClient.db('test').collection('cards').find({stringID: cardIds[cardId]})
+            var cardAwaited = await card.toArray()
+            deckStrings +=  '- ' + cardAwaited[0].name + '\n'
+            
+        } 
+        
+        await interaction.reply({ content: `## Viewing Deck: ${deckName}\n` + deckStrings, ephemeral: false, fetchReply: true });
         
     }
 
@@ -189,7 +205,7 @@ export class DeckCommand extends Subcommand {
         // @ts-ignore
         var deckListString = `## Deck List for ${interaction.member.toString()}\n`
         for (const deck of await result.toArray()) {
-            deckListString += deck.name + "\n";
+            deckListString += "- " + deck.name + "\n";
         }
         
         //interaction.editReply({content:`Unable to create Deck ${deckName}`});
@@ -197,10 +213,4 @@ export class DeckCommand extends Subcommand {
 
 
     }
-    
-    public async Add (){
-        
-    }
-    
-
 }

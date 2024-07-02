@@ -1,9 +1,10 @@
 import './lib/setup';
 
 import { LogLevel, SapphireClient, container } from '@sapphire/framework';
-import { GatewayIntentBits } from 'discord.js';
+import {GatewayIntentBits} from 'discord.js';
 import { MongoClient } from 'mongodb';
 import '@sapphire/plugin-hmr/register';
+import {DeckBusinessLogic} from "./BusinessLogic/deckBL";
 
 // Declare items to be on the container
 
@@ -11,6 +12,7 @@ declare module '@sapphire/framework' {
 	interface Container {
 		mongoClient: MongoClient;
 		testDB: import('mongodb').Db;
+		deckBusinessLogic : DeckBusinessLogic;
 	}
 }
 
@@ -55,6 +57,7 @@ const main = async () => {
 		await client.destroy();
 		process.exit(1);
 	}
+	container.deckBusinessLogic = new DeckBusinessLogic();
 };
 
 void main();

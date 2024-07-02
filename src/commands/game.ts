@@ -3,6 +3,7 @@ import { Subcommand } from '@sapphire/plugin-subcommands';
 import { container } from '@sapphire/framework';
 import { initialGame, initialGameState } from '../lib/initials';
 import { GameMode } from '../lib/bot.types';
+import {User} from "discord.js";
 
 const modes = {
 	normal: GameMode.NORMAL,
@@ -81,7 +82,17 @@ export class GameCommand extends Subcommand {
 		// Join the game
 		// @ts-ignore
 		container.mongoClient.db('test').collection('game').insertOne({ player: interaction.member.id });
-		return interaction.reply('You have joined the game!');
+		
+		// check if player is registered
+		var result = await container.mongoClient.db('test').collection('users').findOne({userId: interaction.member.id})
+		
+		if (result == null){
+			return interaction.reply('You have not yet registered. Unable to join game!');
+		} else {
+			return interaction.reply('You have joined the game!');
+		}
+		
+		
 	}
 
 	public async leave(interaction: Subcommand.ChatInputCommandInteraction) {
@@ -101,13 +112,15 @@ export class GameCommand extends Subcommand {
 		// Check if user has setup and characters
 		// @ts-ignore
 		const user = await container.mongoClient.db('test').collection('users').findOne({ userId: interaction.member.id });
+		const userDecks = await this.container.mongoClient.db('test').collection('deck').find({ player: "" + interaction.member.id}).toArray();
+		console.log(interaction.member.id, userDecks)
 		if (!user) {
 			return interaction.reply('You have not accepted our Terms of Service yet. Please do so by using `/setup`.');
 		}
 		if (user.characters.length < 1) {
 			return interaction.reply('You have not created any characters yet. Please do so by using `/character create`.');
 		}
-        if (user.decks.length < 1) {
+        if (userDecks.length < 1) {
             return interaction.reply('You have not created any decks yet. Please do so by using `/deck create`.');
         }
 		// Check if this channel is already an active game
@@ -119,7 +132,7 @@ export class GameCommand extends Subcommand {
 		// Start the game
 		const gameInit = initialGame;
 		// Check if we're in a thread
-		if (interaction.channel.isThread()) {
+		if (interaction.channel.isThread()) {z``
 			gameInit.channel = interaction.channel.parentId;
 			gameInit.inThread = true;
 			gameInit.threadId = interaction.channel.id;
@@ -143,9 +156,6 @@ export class GameCommand extends Subcommand {
 			.collection('characters')
 			.find({ creator: interaction.member.id })
 			.toArray();
-
-		const userDecks = await this.container.mongoClient.db('test').collection('decks').find({ creator: interaction.member.id }).toArray();
-
 		interaction.author
 			.send(
 				new MessageBuilder()

@@ -1,4 +1,4 @@
-import { Command } from '@sapphire/framework';
+import {Command, container} from '@sapphire/framework';
 import { Message } from 'discord.js';
 import { initialPlayer } from '../lib/initials';
 import { Player } from '../lib/bot.types';
@@ -81,6 +81,7 @@ export class SetupCommand extends Command {
 						userObj.userId = user.id;
                         this.container.mongoClient.db('test').collection('users').insertOne(userObj);
 						await user.send('You have accepted the terms. You can now use the bot. You can review the terms at any time by running `/policy`.\nHappy Transforming!');
+						container.deckBusinessLogic.CreateBaseDeck(userObj.userId);
 						collector.stop();
 					} else {
 						await user.send('You have declined the terms. You will not be able to use the bot until you accept the terms. If you would like to accept the terms, please run the command again.')
