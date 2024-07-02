@@ -5,6 +5,7 @@ import {GatewayIntentBits} from 'discord.js';
 import { MongoClient } from 'mongodb';
 import '@sapphire/plugin-hmr/register';
 import {DeckBusinessLogic} from "./BusinessLogic/deckBL";
+import { basicCommandUtils} from "./BusinessLogic/basicCommandUtils";
 
 // Declare items to be on the container
 
@@ -13,6 +14,7 @@ declare module '@sapphire/framework' {
 		mongoClient: MongoClient;
 		testDB: import('mongodb').Db;
 		deckBusinessLogic : DeckBusinessLogic;
+		utils: typeof basicCommandUtils;
 	}
 }
 
@@ -43,6 +45,7 @@ const main = async () => {
 			container.mongoClient = await MongoClient.connect(mongoUri);
 			container.mongoClient.on('error', (error) => client.logger.error(error));
 			container.testDB = container.mongoClient.db('test');
+			container.utils = basicCommandUtils;
 			client.logger.info('Connected to MongoDB');
 		} catch (error) {
 			client.logger.fatal(error);

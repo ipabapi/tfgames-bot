@@ -1,7 +1,7 @@
 import {Command, container} from '@sapphire/framework';
 import { Message } from 'discord.js';
-import { initialPlayer } from '../lib/initials';
-import { Player } from '../lib/bot.types';
+import { initialPlayer } from '../../lib/initials';
+import { Player } from '../../lib/bot.types';
 import { MessageBuilder } from '@sapphire/discord.js-utilities';
 
 

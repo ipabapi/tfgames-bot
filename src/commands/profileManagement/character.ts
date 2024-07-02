@@ -1,8 +1,8 @@
 import { Subcommand } from '@sapphire/plugin-subcommands';
 // import { container } from "@sapphire/framework";
 import { ComponentType, EmbedType, Message, MessageCollector } from 'discord.js';
-import { Character, CharacterMode } from '../lib/bot.types';
-import { initialCharacter } from '../lib/initials';
+import { Character, CharacterMode } from '../../lib/bot.types';
+import { initialCharacter } from '../../lib/initials';
 import { MessageBuilder } from '@sapphire/discord.js-utilities';
 
 const difficulties = {

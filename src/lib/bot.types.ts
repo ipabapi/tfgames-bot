@@ -87,7 +87,10 @@ export interface Guild {
 
 export interface Game {
     _id?: ObjectId;
-    players: { [key: string]: Character }; // the players in the game
+    players: { [key: string]: {
+        character: string; // the character the player is using
+        deck: string; // the deck the player is using
+    } }; // the players in the game
     channel: string; // the discord channel id
     inThread: boolean; // if the game is in a thread
     threadId: string | null; // the thread id
