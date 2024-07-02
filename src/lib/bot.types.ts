@@ -7,6 +7,7 @@ export interface Player {
     _id?: ObjectId;
     userId: string; // discord user id
     characters: string[]; // the characters the player has, if any, will be a list of character id or else this will take forever to load
+    decks: string[]; // the decks the player has, if any, will be a list of deck id or else this will take forever to load
     preferences: PlayerPreferences; // the preferences of the player, this is their base preferences, the character preferences will override this
     guilds: { [key: string]: PlayerGuildInfo }; // the guilds the player is in, if any, will be a list of guild id or else this will take forever to load   
 }
@@ -73,6 +74,17 @@ export interface PlayerGuildInfo {
     }
 }
 
+export interface Guild {
+    _id?: ObjectId;
+    guildId: string; // discord guild id
+    games: string[]; // the games the guild is in, if any, will be a list of game id or else this will take forever to load
+    normalChannels: string[]; // the channels designated for normal games
+    hardcoreChannels: string[]; // the channels designated for hardcore games
+    bannedPlayers: string[]; // the players banned from games in the guild
+    // Later we can add more stuff like guild specific cards, and guild specific items/shop.
+
+}
+
 export interface Game {
     _id?: ObjectId;
     players: { [key: string]: Character }; // the players in the game
@@ -105,6 +117,7 @@ export interface GameState {
     lastAction: string | null; // the last action that happened, mainly for logging
     status: GameStatus; // the status of the game
     turn: number; // the current turn
+    afkPlayers: Player[]; // the players that are afk
 }
 
 export enum GameMode {
@@ -131,6 +144,16 @@ export enum CharacterMode {
     HARDER = 'HARDER', // The character CAN gain or store gold, but can't use items
     VERYHARD = 'VERYHARD', // The character can't gain or store gold, and can't use items
     NIGHTMARE = 'NIGHTMARE' // The character can't gain or store gold, can't use items, and can't draw cards, relying on the bot to draw for them and then a second roll (d{n being players} to determine if they can play the card or if another player will play it for them
+}
+
+export interface Deck {
+    _id?: ObjectId;
+    name: string; // the name of the deck
+    description: string; // the description of the deck
+    cards: string[]; // the cards in the deck, will be a list of card id or else this will take forever to load
+    creator: string; // the player that created the deck
+    guilds: string[]; // the guilds the deck is in, if any, will be a list of guild id or else this will take forever to load
+
 }
 
 export interface Card {

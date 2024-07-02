@@ -16,6 +16,7 @@ export const initialPreferenceObject: PlayerPreferences = {
 export const initialPlayer: Player = {
     userId: '',
     characters: [],
+    decks: [],
     guilds: {},
     preferences: initialPreferenceObject
 }
@@ -73,7 +74,8 @@ export const initialGameState: GameState = {
     lastPlayer: null,
     lastAction: null,
     status: GameStatus.WAITINGFORPLAYERS,
-    turn: 0
+    turn: 0,
+    afkPlayers: []
 }
 
 export const initialGame: Game = {
