@@ -3,8 +3,6 @@ import { Subcommand } from '@sapphire/plugin-subcommands';
 import { container } from '@sapphire/framework';
 import { initialGame, initialGameState } from '../lib/initials';
 import { GameMode } from '../lib/bot.types';
-import {User} from "discord.js";
-
 const modes = {
 	normal: GameMode.NORMAL,
 	hardcore: GameMode.HARDCORE
@@ -132,7 +130,7 @@ export class GameCommand extends Subcommand {
 		// Start the game
 		const gameInit = initialGame;
 		// Check if we're in a thread
-		if (interaction.channel.isThread()) {z``
+		if (interaction.channel.isThread()) {
 			gameInit.channel = interaction.channel.parentId;
 			gameInit.inThread = true;
 			gameInit.threadId = interaction.channel.id;
