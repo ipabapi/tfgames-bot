@@ -161,6 +161,7 @@ export interface Deck {
 
 export interface Card {
     _id: ObjectId;
+    stringID: string;
     name: string;
     description: string;
     effect: CardEffect;

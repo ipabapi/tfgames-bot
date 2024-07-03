@@ -541,7 +541,9 @@ export class GameCommand extends Subcommand {
 									}
 								}
 							);
-						return i.reply('You have chosen your character and deck!');
+						i.reply('You have chosen your character and deck!');
+						collector.stop();
+						return;
 					} else {
 						return i.reply('Invalid interaction!');
 					}
