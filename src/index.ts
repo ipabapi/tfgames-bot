@@ -15,6 +15,13 @@ declare module '@sapphire/framework' {
 		testDB: import('mongodb').Db;
 		deckBusinessLogic : DeckBusinessLogic;
 		utils: typeof basicCommandUtils;
+		db: import('mongodb').Db;
+		users: import('mongodb').Collection;
+		game: import('mongodb').Collection;
+		deck: import('mongodb').Collection;
+		cards: import('mongodb').Collection;
+		guilds: import('mongodb').Collection;
+		characters: import('mongodb').Collection
 	}
 }
 
@@ -42,9 +49,17 @@ const client = new SapphireClient({
 const main = async () => {
 	try {
 		try {
-			container.mongoClient = await MongoClient.connect(mongoUri);
-			container.mongoClient.on('error', (error) => client.logger.error(error));
-			container.testDB = container.mongoClient.db('test');
+			// container.mongoClient = await MongoClient.connect(mongoUri);
+			// container.mongoClient.on('error', (error) => client.logger.error(error));
+			// container.testDB = container.mongoClient.db('test');
+			const mongoDB = await MongoClient.connect(mongoUri);
+			container.db = mongoDB.db('test');
+			container.users = container.db.collection('users');
+			container.game = container.db.collection('game');
+			container.deck = container.db.collection('deck');
+			container.cards = container.db.collection('cards');
+			container.guilds = container.db.collection('guilds');
+			container.characters = container.db.collection('characters');
 			container.utils = basicCommandUtils;
 			client.logger.info('Connected to MongoDB');
 		} catch (error) {

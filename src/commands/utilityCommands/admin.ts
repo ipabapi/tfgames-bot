@@ -40,7 +40,7 @@ export class AdminCommand extends Subcommand {
     public async resetCards(interaction: Subcommand.ChatInputCommandInteraction) {
         await interaction.reply({ content: `Setting up base Cards in db...`, ephemeral: true, fetchReply: true });
         await interaction.editReply({ content: `Deleting Table Cards...`});
-        container.mongoClient.db('test').collection('cards').drop();
+        container.cards.drop();
         await interaction.editReply({ content: `Inserting Initial Values...`});
         const filePath = "src/cards.json"
         fs.readFile(filePath, 'utf8', (err, data) => {
@@ -51,7 +51,7 @@ export class AdminCommand extends Subcommand {
             try {
                 const jsonData = JSON.parse(data);
                 interaction.editReply('JSON data:'+ jsonData);
-                container.mongoClient.db('test').collection('cards').insertMany(jsonData);
+                container.cards.insertMany(jsonData);
             } catch (err) {
                 console.error('Error parsing JSON:', err);
             }

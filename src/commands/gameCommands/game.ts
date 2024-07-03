@@ -91,11 +91,11 @@ export class GameCommand extends Subcommand {
 
 	public async join(interaction: Subcommand.ChatInputCommandInteraction) {
 		if (!interaction.guild) return interaction.reply('This command can only be used in a server!');
-		const game = await container.mongoClient.db('test').collection('game').findOne({ channel: interaction.channel?.id });
+		const game = await container.game.findOne({ channel: interaction.channel?.id });
 		if (!game) {
 			return interaction.reply('There is no active game in this channel! Try using `/game start` instead.');
 		}
-		const user = await container.mongoClient.db('test').collection('users').findOne({ userId: interaction.user.id });
+		const user = await container.users.findOne({ userId: interaction.user.id });
 		if (!user) {
 			return interaction.reply('You have not accepted our Terms of Service yet. Please do so by using `/setup`.');
 		}
@@ -121,7 +121,7 @@ export class GameCommand extends Subcommand {
 	public async leave(interaction: Subcommand.ChatInputCommandInteraction) {
 		// Leave the game
 		if (!interaction.guild) return interaction.reply('This command can only be used in a server!');
-		const game = await container.mongoClient.db('test').collection('game').findOne({ channel: interaction.channel?.id });
+		const game = await container.game.findOne({ channel: interaction.channel?.id });
 		if (!game) {
 			return interaction.reply('There is no active game in this channel! Try using `/game start` instead.');
 		}
@@ -130,7 +130,7 @@ export class GameCommand extends Subcommand {
 		}
 		game.players = Object.fromEntries(Object.entries(game.players).filter(([key, _value]) => key != interaction.user.id));
 		if (Object.keys(game.players).length < 1) {
-			await container.mongoClient.db('test').collection('game').deleteOne({ channel: interaction.channel?.id });
+			await container.game.deleteOne({ channel: interaction.channel?.id });
 			return interaction.reply('You have left the game! The game has ended.');
 		} else {
 			await container.mongoClient
@@ -158,7 +158,7 @@ export class GameCommand extends Subcommand {
 			return interaction.reply('Invalid game type! Please choose normal or hardcore.');
 		}
 		// Check if user has setup and characters
-		const user = await container.mongoClient.db('test').collection('users').findOne({ userId: interaction.user.id });
+		const user = await container.users.findOne({ userId: interaction.user.id });
 		const userDecks = await this.container.mongoClient
 			.db('test')
 			.collection('deck')
@@ -175,7 +175,7 @@ export class GameCommand extends Subcommand {
 		}
 		// Check if this channel is already an active game
 		// @ts-ignore
-		const game = await container.mongoClient.db('test').collection('game').findOne({ channel: interaction.channel.id });
+		const game = await container.game.findOne({ channel: interaction.channel.id });
 		if (game) {
 			return interaction.reply('This channel is already an active game! Try using `/game join` instead.');
 		}
@@ -193,7 +193,7 @@ export class GameCommand extends Subcommand {
 
 		// Add the game to the database
 
-		const success = await container.mongoClient.db('test').collection('game').insertOne(gameInit);
+		const success = await container.game.insertOne(gameInit);
 
 		if (!success) {
 			return interaction.reply('There was an error starting the game!');
@@ -215,7 +215,7 @@ export class GameCommand extends Subcommand {
 		// Check if the command is being used in a server
 		if (!interaction.guild) return interaction.reply('This command can only be used in a server!');
 		// Check if the game exists
-		const game = await container.mongoClient.db('test').collection('game').findOne({ channel: interaction.channel?.id });
+		const game = await container.game.findOne({ channel: interaction.channel?.id });
 		if (!game) {
 			return interaction.reply('There is no active game in this channel! Try using `/game start` instead.');
 		}
@@ -248,21 +248,28 @@ export class GameCommand extends Subcommand {
 			let votes = 0;
 			let endVotes = 0;
 			let dontEndVotes = 0;
+			let voted: string[] = [];
 			collector.on('collect', async (i) => {
-				if (players.includes(i.user.id)) {
+				if (players.includes(i.user.id) && !voted.includes(i.user.id)) {
 					if (i.customId == 'endgame') {
 						endVotes++;
 						votes++;
+						voted.push(i.user.id);
 					} else if (i.customId == 'dontendgame') {
 						dontEndVotes++;
 						votes++;
+						voted.push(i.user.id);
 					}
 					if (votes >= players.length) {
 						if (endVotes > dontEndVotes) {
-							await container.mongoClient.db('test').collection('game').deleteOne({ channel: i.channel?.id });
-							return m.channel.send('The game has ended!');
+							await container.game.deleteOne({ channel: i.channel?.id });
+							m.channel.send('The game has ended!');
+							collector.stop();
+							return;
 						} else {
-							return m.channel.send('The game has not ended!');
+							m.channel.send('The game has not ended!');
+							collector.stop();
+							return;
 						}
 					}
 					return i.reply({ content: 'You have voted!', ephemeral: true })
@@ -273,7 +280,7 @@ export class GameCommand extends Subcommand {
 				if (reason == 'time') {
 					// Check the votes
 					if (endVotes > dontEndVotes) {
-						await container.mongoClient.db('test').collection('game').deleteOne({ channel: interaction.channel?.id });
+						await container.game.deleteOne({ channel: interaction.channel?.id });
 						return m.channel.send('The game has ended!');
 					} else {
 						return m.channel.send('The game has not ended!');
@@ -289,7 +296,7 @@ export class GameCommand extends Subcommand {
 		// check if the command is being used in a server
 		if (!interaction.guild) return interaction.reply('This command can only be used in a server!');
 		// check if the game exists
-		const game = await container.mongoClient.db('test').collection('game').findOne({ channel: interaction.channel?.id });
+		const game = await container.game.findOne({ channel: interaction.channel?.id });
 		if (!game) {
 			return interaction.reply('There is no active game in this channel! Try using `/game start` instead.');
 		}
@@ -329,14 +336,17 @@ export class GameCommand extends Subcommand {
 			let votes = 0;
 			let kickVotes = 0;
 			let dontKickVotes = 0;
+			let voted: string[] = [];
 			collector.on('collect', async (i) => {
-				if (players.includes(i.user.id)) {
+				if (players.includes(i.user.id) && !voted.includes(i.user.id)) {
 					if (i.customId == 'kickplayer') {
 						kickVotes++;
 						votes++;
+						voted.push(i.user.id);
 					} else if (i.customId == 'dontkickplayer') {
 						dontKickVotes++;
 						votes++;
+						voted.push(i.user.id);
 					}
 					if (votes >= players.length) {
 						if (kickVotes > dontKickVotes) {
@@ -372,7 +382,7 @@ export class GameCommand extends Subcommand {
 		if (!channel || interaction.guild?.channels.cache.get(channel.id) == undefined) {
 			return interaction.reply({content: 'Invalid channel, is it outside of the server or maybe one I cannot see?', ephemeral: true});
 		}
-		const game = await container.mongoClient.db('test').collection('game').findOne({ channel: channel.id });
+		const game = await container.game.findOne({ channel: channel.id });
 		if (!game) {
 			return interaction.reply('There is no active game in this channel!');
 		}
@@ -410,7 +420,7 @@ export class GameCommand extends Subcommand {
 
 	public async removePlayer(interaction: Subcommand.ChatInputCommandInteraction) {
 		// Remove a player from the game
-		const game = await container.mongoClient.db('test').collection('game').findOne({ channel: interaction.channel?.id });
+		const game = await container.game.findOne({ channel: interaction.channel?.id });
 		if (!game) {
 			console.error('Game not found, but vote passed? Did the game end before the vote was completed?');
 			interaction.channel?.send('Hmm, something went wrong when trying to kick the player. Please try again, if the issue persists, contact the bot owner.');
@@ -418,7 +428,7 @@ export class GameCommand extends Subcommand {
 		}
 		game.players = Object.fromEntries(Object.entries(game.players).filter(([key, _value]) => key != interaction.options.getUser('player')?.id));
 		if (Object.keys(game.players).length < 1) {
-			await container.mongoClient.db('test').collection('game').deleteOne({ channel: interaction.channel?.id });
+			await container.game.deleteOne({ channel: interaction.channel?.id });
 			return interaction.reply('The player has been kicked! The game has ended.');
 		} else {
 			await container.mongoClient
@@ -439,7 +449,7 @@ export class GameCommand extends Subcommand {
 	}
 
 	public async choosePlayerAndDeck({ interaction, gameInit, userDecks }: choosePlayerAndDeckProps) {
-		const userCharacters = await this.container.mongoClient.db('test').collection('characters').find({ creator: interaction.user.id }).toArray();
+		const userCharacters = await this.container.characters.find({ creator: interaction.user.id }).toArray();
 		console.log(userCharacters);
 		const charas = userCharacters.map((character) => {
 			return {
@@ -447,7 +457,6 @@ export class GameCommand extends Subcommand {
 				value: character._id.toString()
 			};
 		});
-		console.log(charas);
 		interaction.user
 			.send(
 				new MessageBuilder()
@@ -518,7 +527,7 @@ export class GameCommand extends Subcommand {
 						if (!deck) {
 							return i.reply('Invalid deck!');
 						}
-						let characterID = await container.mongoClient.db('test').collection('game').findOne({ channel: gameInit.channel });
+						let characterID = await container.game.findOne({ channel: gameInit.channel });
 						if (!characterID) {
 							return i.reply('Invalid interaction!');
 						}

@@ -28,7 +28,7 @@ export class BeginGameCommand extends Command {
         if (!interaction.guild) { return interaction.reply('This command can only be used in servers'); }
 
         // Check if there is a game in this channel
-        const game = await container.mongoClient.db('test').collection('game').findOne({ channel: interaction.channel?.id });
+        const game = await container.game.findOne({ channel: interaction.channel?.id });
         if (!game) { return interaction.reply('There is no game in this channel'); }
         if (game.state.status != GameStatus.WAITINGFORPLAYERS) { return interaction.reply('The game has already started'); }
 

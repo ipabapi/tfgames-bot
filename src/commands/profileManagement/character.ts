@@ -118,7 +118,7 @@ export class CharacterCommand extends Subcommand {
 				return;
 			}
 		} else {
-			user = await this.container.mongoClient.db('test').collection('users').findOne({ userId: interaction.user.id });
+			user = await this.container.users.findOne({ userId: interaction.user.id });
 			if (!user) {
 				interaction.reply({ content: "I'm sorry, you need to set up your account first. Please use the /setup command.", ephemeral: true });
 				return;
@@ -193,7 +193,7 @@ export class CharacterCommand extends Subcommand {
 				return;
 			}
 		} else {
-			user = await this.container.mongoClient.db('test').collection('users').findOne({ userId: interaction.user.id });
+			user = await this.container.users.findOne({ userId: interaction.user.id });
 			if (!user) {
 				interaction.reply({ content: "I'm sorry, you need to set up your account first. Please use the /setup command.", ephemeral: true });
 				return;
@@ -389,7 +389,7 @@ export class CharacterCommand extends Subcommand {
 		// Start by checking if the user is in our database
 		// If not, prompt them to do setup
 
-		const user = await this.container.mongoClient.db('test').collection('users').findOne({ userId: interaction.user.id });
+		const user = await this.container.users.findOne({ userId: interaction.user.id });
 
 		if (!user) {
 			interaction.reply("I'm sorry, you need to set up your account first. Please use the /setup command.");
@@ -575,7 +575,7 @@ export class CharacterCommand extends Subcommand {
 
 	public async delete(interaction: Subcommand.ChatInputCommandInteraction) {
 		// Check if the user is in the database
-		const user = await this.container.mongoClient.db('test').collection('users').findOne({ userId: interaction.user.id });
+		const user = await this.container.users.findOne({ userId: interaction.user.id });
 		if (!user) {
 			interaction.reply({ content: "I'm sorry, you need to set up your account first. Please use the /setup command.", ephemeral: true });
 			return;
@@ -621,14 +621,14 @@ export class CharacterCommand extends Subcommand {
 				return;
 			}
 		} else {
-			user = await this.container.mongoClient.db('test').collection('users').findOne({ userId: interaction.user.id });
+			user = await this.container.users.findOne({ userId: interaction.user.id });
 			if (!user) {
 				interaction.reply({ content: "I'm sorry, you need to set up your account first. Please use the /setup command.", ephemeral: true });
 				return;
 			}
 		}
 
-		const characters = await this.container.mongoClient.db('test').collection('characters').find({ creator: user.userId }).toArray();
+		const characters = await this.container.characters.find({ creator: user.userId }).toArray();
 		if (characters.length === 0) {
 			interaction.reply({
 				content: `${user.userId == interaction.user.id ? "You don't" : "This user doesn't"} have any characters yet! Use /character create to make one.`,

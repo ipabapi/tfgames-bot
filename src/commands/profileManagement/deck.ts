@@ -87,13 +87,13 @@ export class DeckCommand extends Subcommand {
     public async deckView(interaction: Subcommand.ChatInputCommandInteraction) {
         const deckName = interaction.options.getString('name')
         var query = { player: interaction.user.id, name: deckName };
-        var dbResult = await container.mongoClient.db('test').collection('deck').find(query)
+        var dbResult = await container.deck.find(query)
 
         var result = await dbResult.toArray()
         var deckStrings = '';
         const {cardIds} = result[0];
         for (let cardId in cardIds) {
-            var card = await container.mongoClient.db('test').collection('cards').find({stringID: cardIds[cardId]})
+            var card = await container.cards.find({stringID: cardIds[cardId]})
             var cardAwaited = await card.toArray()
             deckStrings +=  '- ' + cardAwaited[0].name + '\n'
             
@@ -159,9 +159,9 @@ export class DeckCommand extends Subcommand {
             
             // check if deck already exists
             var query = { player: interaction.user.id, name: deckName};
-            var result = await container.mongoClient.db('test').collection('deck').find(query)
+            var result = await container.deck.find(query)
             if ((await result.toArray()).length == 0 ) {
-            container.mongoClient.db('test').collection('deck').insertOne({ player: interaction.user.id, name : deckName, cardIds: []});
+            container.deck.insertOne({ player: interaction.user.id, name : deckName, cardIds: []});
             interaction.editReply({content:`Deck ${deckName} successfully created`})
             } else{
                 interaction.editReply({content:`Unable to create Deck ${deckName}. Deck with same name registered to same player already exists`});
@@ -176,9 +176,9 @@ export class DeckCommand extends Subcommand {
 
         // check if deck already exists
         var query = { player: interaction.user.id, name: deckName};
-        var result = await container.mongoClient.db('test').collection('deck').find(query)
+        var result = await container.deck.find(query)
         if ((await result.toArray()).length != 0 ) {
-            container.mongoClient.db('test').collection('deck').deleteMany({ player: interaction.user.id, name : deckName});
+            container.deck.deleteMany({ player: interaction.user.id, name : deckName});
             interaction.editReply({content:`Deck ${deckName} successfully deleted`})
         } else{
             interaction.editReply({content:`Unable to delete Deck ${deckName}. Does not exist.`});
@@ -189,7 +189,7 @@ export class DeckCommand extends Subcommand {
     
     public async deckList(interaction: Subcommand.ChatInputCommandInteraction) {
         var query = { player: interaction.user.id };
-        var result = await container.mongoClient.db('test').collection('deck').find(query)
+        var result = await container.deck.find(query)
         var deckListString = `## Deck List for ${interaction.user.toString()}\n`
         for (const deck of await result.toArray()) {
             deckListString += "- " + deck.name + "\n";

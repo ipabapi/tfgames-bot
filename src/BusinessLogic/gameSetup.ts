@@ -7,7 +7,7 @@ export async function gameSetup(interaction: Command.ChatInputCommandInteraction
     interaction.channel?.send({ content: `Well then, seems like we have ${Object.keys(game.players).length} players ready to play! That is ${Object.keys(game.players).map(player => `<@${player}>`).join(', ')}. Let's get started!` });
     // Grab decks from the game object at players.decks, then grab the cards from the decks at their database location
     const deckIds = Object.values(game.players).map(player => player.deck);
-    const decks = await Promise.all(deckIds.map(deckId => container.mongoClient.db('test').collection('deck').findOne({ _id: new ObjectId(deckId) })));
+    const decks = await Promise.all(deckIds.map(deckId => container.deck.findOne({ _id: new ObjectId(deckId) })));
     if (!decks) {
         throw new Error('Decks not found');
     }
@@ -49,7 +49,7 @@ export async function gameSetup(interaction: Command.ChatInputCommandInteraction
         [players[i], players[j]] = [players[j], players[i]];
     }
     // @ts-expect-error no overload matches this call
-    game.state.turnOrder = await Promise.all(players.map(player => container.mongoClient.db('test').collection('users').findOne({ userId: player })));
+    game.state.turnOrder = await Promise.all(players.map(player => container.users.findOne({ userId: player })));
     
     game.state.status = GameStatus.TURNSTART;
     game.state.currentPlayer = game.state.turnOrder[game.state.turnOrder.length - 1]; // this is to save A SINGLE unshift and push operation, saving a few nanoseconds
@@ -60,11 +60,11 @@ export async function gameSetup(interaction: Command.ChatInputCommandInteraction
     game.state.turn = 1;
     // Save the game state
     // TODO: Card draw function implementation
-    await container.mongoClient.db('test').collection('game').updateOne({ channel: game.channel }, { $set: { state: game.state } });
+    await container.game.updateOne({ channel: game.channel }, { $set: { state: game.state } });
     return interaction.reply({ content: `still in progress`, ephemeral: true });
 
 }
 
 async function getCardsFromIds(cardIds: string[]) {
-    return await Promise.all(cardIds.map(cardId => container.mongoClient.db('test').collection('cards').findOne({ stringID: cardId })));
+    return await Promise.all(cardIds.map(cardId => container.cards.findOne({ stringID: cardId })));
 }

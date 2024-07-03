@@ -79,7 +79,7 @@ export class SetupCommand extends Command {
 						successful = true;
 						// Fill in the user object with the user's ID
 						userObj.userId = user.id;
-                        this.container.mongoClient.db('test').collection('users').insertOne(userObj);
+                        this.container.users.insertOne(userObj);
 						await user.send('You have accepted the terms. You can now use the bot. You can review the terms at any time by running `/policy`.\nHappy Transforming!');
 						container.deckBusinessLogic.CreateBaseDeck(userObj.userId);
 						collector.stop();
