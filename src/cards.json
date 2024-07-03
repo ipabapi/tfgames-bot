@@ -2,6 +2,7 @@
     {
         "stringID": "card_0001",
         "name": "Body Transformation",
+        "image": "https://i.ibb.co/4WvPhVm/bodyTF.jpg",
         "description": "",
         "effect": {
             "tags": [
@@ -50,6 +51,7 @@
     {
         "stringID": "card_0003",
         "name": "Name Change",
+        "image": "https://i.ibb.co/d5jLMRw/nameTF.jpg",
         "description": "",
         "effect": {
             "tags": [
@@ -98,6 +100,7 @@
     {
         "stringID": "card_0005",
         "name": "Absorption",
+        "image": "https://i.ibb.co/6NJBvMs/absorbTF.jpg",
         "description": "",
         "effect": {
             "tags": [
@@ -241,6 +244,7 @@
     {
         "stringID": "card_0011",
         "name": "Reverse",
+        "image": "https://i.ibb.co/Kj7hmqR/reverse-IT.jpg",
         "description": "",
         "effect": {
             "tags": [
@@ -287,6 +291,7 @@
     {
         "stringID": "card_0013",
         "name": "Steal",
+        "image": "https://i.ibb.co/V9W4Nty/stealIT.jpg",
         "description": "",
         "effect": {
             "tags": [

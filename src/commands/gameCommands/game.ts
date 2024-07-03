@@ -1,7 +1,7 @@
 import { Subcommand } from '@sapphire/plugin-subcommands';
 import { container } from '@sapphire/framework';
 import { initialGame } from '../../lib/initials';
-import { Deck, Game, GameMode } from '../../lib/bot.types';
+import { Deck, Game, GameMode, GameStatus } from '../../lib/bot.types';
 import { MessageBuilder } from '@sapphire/discord.js-utilities';
 import { ComponentType, PermissionFlagsBits } from 'discord.js';
 const modes: { [key: string]: GameMode } = {
@@ -84,8 +84,18 @@ export class GameCommand extends Subcommand {
 						.addStringOption((option) => option.setName('game').setDescription('Normal or Hardcore?').setRequired(true))
 				)
 				.addSubcommand((builder) => builder.setName('end').setDescription('End the game'))
-				.addSubcommand((builder) => builder.setName('kick').setDescription('Kick a player from the game').addUserOption((option) => option.setName('player').setDescription('The player to kick').setRequired(true)))
-				.addSubcommand((builder) => builder.setName('status').setDescription('Check the game status').addChannelOption((option) => option.setName('channel').setDescription('The channel to check').setRequired(false)))
+				.addSubcommand((builder) =>
+					builder
+						.setName('kick')
+						.setDescription('Kick a player from the game')
+						.addUserOption((option) => option.setName('player').setDescription('The player to kick').setRequired(true))
+				)
+				.addSubcommand((builder) =>
+					builder
+						.setName('status')
+						.setDescription('Check the game status')
+						.addChannelOption((option) => option.setName('channel').setDescription('The channel to check').setRequired(false))
+				)
 		);
 	}
 
@@ -105,13 +115,20 @@ export class GameCommand extends Subcommand {
 		if (user.characters.length < 1) {
 			return interaction.reply('You have not created any characters yet. Please do so by using `/character create`.');
 		}
-		const userDecks = await container.mongoClient
-			.db('test')
-			.collection('deck')
-			.find({ player: '' + interaction.user.id })
-			.toArray();
+		const userDecks = await container.deck.find({ player: '' + interaction.user.id }).toArray();
 		if (userDecks.length < 1) {
 			return interaction.reply('You have not created any decks yet. Please do so by using `/deck create`.');
+		}
+		if (game.state.status != GameStatus.WAITINGFORPLAYERS) {
+			// interaction.deferReply({ ephemeral: true });
+			const result = await this.joinVote(interaction);
+			if (result) {
+				// @ts-ignore
+				this.choosePlayerAndDeck({ interaction, gameInit: game, userDecks });
+				return interaction.reply('Sent you a DM to choose your character and deck!');
+			} else {
+				return interaction.reply('The vote to join the game failed!');
+			}
 		}
 		// @ts-ignore
 		this.choosePlayerAndDeck({ interaction, gameInit: game, userDecks });
@@ -133,10 +150,14 @@ export class GameCommand extends Subcommand {
 			await container.game.deleteOne({ channel: interaction.channel?.id });
 			return interaction.reply('You have left the game! The game has ended.');
 		} else {
-			await container.mongoClient
-				.db('test')
-				.collection('game')
-				.updateOne({ channel: interaction.channel?.id }, { $set: { players: game.players } });
+			//@ts-ignore
+			const newState = await container.gl.removePlayer(game, interaction.user.id);
+			await container.game.updateOne({ channel: interaction.channel?.id }, { $set: { players: game.players, state: newState.state } });
+			if (game.state.currentPlayer.userId != newState.state.currentPlayer?.userId) {
+				interaction.channel?.send(
+					`It is now <@${newState.state.currentPlayer?.userId}>'s turn, as <@${game.state.currentPlayer.userId}> has left the game.`
+				);
+			}
 			return interaction.reply(
 				new MessageBuilder().setEmbeds([
 					{
@@ -157,13 +178,10 @@ export class GameCommand extends Subcommand {
 		if (gameType?.toLowerCase() != 'normal' && gameType?.toLowerCase() != 'hardcore') {
 			return interaction.reply('Invalid game type! Please choose normal or hardcore.');
 		}
+		console.log('starting game');
 		// Check if user has setup and characters
 		const user = await container.users.findOne({ userId: interaction.user.id });
-		const userDecks = await this.container.mongoClient
-			.db('test')
-			.collection('deck')
-			.find({ player: '' + interaction.user.id })
-			.toArray();
+		const userDecks = await this.container.deck.find({ player: '' + interaction.user.id }).toArray();
 		if (!user) {
 			return interaction.reply('You have not accepted our Terms of Service yet. Please do so by using `/setup`.');
 		}
@@ -224,72 +242,90 @@ export class GameCommand extends Subcommand {
 		}
 		// Ask for confirmation
 		const players = Object.keys(game.players);
-		interaction.channel?.send(new MessageBuilder().setEmbeds([{
-			title: `${interaction.user.displayName} is voting to end the game!`,
-			description: `Please vote by clicking yes or no below. If the majority votes yes, the game will end.`
-		}]).setComponents([{
-			type: 1,
-			components: [
-				{
-					type: 2,
-					style: 1,
-					customId: 'endgame',
-					label: 'Yes'
-				},
-				{
-					type: 2,
-					style: 4,
-					customId: 'dontendgame',
-					label: 'No'
-				}
-			]
-		}])).then(async (m) => {
-			const collector = m.channel.createMessageComponentCollector({ componentType: ComponentType.Button, time: 60000 });
-			let votes = 0;
-			let endVotes = 0;
-			let dontEndVotes = 0;
-			let voted: string[] = [];
-			collector.on('collect', async (i) => {
-				if (players.includes(i.user.id) && !voted.includes(i.user.id)) {
-					if (i.customId == 'endgame') {
-						endVotes++;
-						votes++;
-						voted.push(i.user.id);
-					} else if (i.customId == 'dontendgame') {
-						dontEndVotes++;
-						votes++;
-						voted.push(i.user.id);
+		interaction.channel
+			?.send(
+				new MessageBuilder()
+					.setEmbeds([
+						{
+							title: `${interaction.user.displayName} is voting to end the game!`,
+							description: `Please vote by clicking yes or no below. If the majority votes yes, the game will end.`
+						}
+					])
+					.setComponents([
+						{
+							type: 1,
+							components: [
+								{
+									type: 2,
+									style: 1,
+									customId: 'endgame',
+									label: 'Yes'
+								},
+								{
+									type: 2,
+									style: 4,
+									customId: 'dontendgame',
+									label: 'No'
+								}
+							]
+						}
+					])
+			)
+			.then(async (m) => {
+				const collector = m.channel.createMessageComponentCollector({ componentType: ComponentType.Button, time: 60000 });
+				let votes = 0;
+				let endVotes = 0;
+				let dontEndVotes = 0;
+				let voted: string[] = [];
+				collector.on('collect', async (i) => {
+					try {
+						if (voted.includes(i.user.id)) {
+							return i.reply({ content: 'You have already voted!', ephemeral: true });
+						}
+						if (players.includes(i.user.id)) {
+							if (i.customId == 'endgame') {
+								endVotes++;
+								votes++;
+								voted.push(i.user.id);
+							} else if (i.customId == 'dontendgame') {
+								dontEndVotes++;
+								votes++;
+								voted.push(i.user.id);
+							}
+							if (votes >= players.length) {
+								if (endVotes > dontEndVotes) {
+									await container.game.deleteOne({ channel: i.channel?.id });
+									m.channel.send('The game has ended!');
+									collector.stop();
+									return;
+								} else {
+									m.channel.send('The game has not ended!');
+									collector.stop();
+									return;
+								}
+							}
+							return i.reply({ content: 'You have voted!', ephemeral: true });
+						}
+						return i.reply(`<@${i.user.id}>, you are not in the game!`);
+					} catch (e) {
+						console.error(e);
+						return i.channel?.send('An error occurred while processing your vote. Please try again.');
 					}
-					if (votes >= players.length) {
+				});
+				collector.on('end', async (_collected, reason) => {
+					if (reason == 'time') {
+						// Check the votes
 						if (endVotes > dontEndVotes) {
-							await container.game.deleteOne({ channel: i.channel?.id });
-							m.channel.send('The game has ended!');
-							collector.stop();
-							return;
+							await container.game.deleteOne({ channel: interaction.channel?.id });
+							return m.channel.send('The game has ended!');
 						} else {
-							m.channel.send('The game has not ended!');
-							collector.stop();
-							return;
+							return m.channel.send('The game has not ended!');
 						}
 					}
-					return i.reply({ content: 'You have voted!', ephemeral: true })
-				}
-				return i.reply(`<@${i.user.id}>, you are not in the game!`);
+					return;
+				});
 			});
-			collector.on('end', async (_collected, reason) => {
-				if (reason == 'time') {
-					// Check the votes
-					if (endVotes > dontEndVotes) {
-						await container.game.deleteOne({ channel: interaction.channel?.id });
-						return m.channel.send('The game has ended!');
-					} else {
-						return m.channel.send('The game has not ended!');
-					}
-				}
-				return
-			});
-		});
-		return interaction.reply({content: 'You have initiated a vote to end the game!', ephemeral: true});
+		return interaction.reply({ content: 'You have initiated a vote to end the game!', ephemeral: true });
 	}
 
 	public async kick(interaction: Subcommand.ChatInputCommandInteraction) {
@@ -300,11 +336,14 @@ export class GameCommand extends Subcommand {
 		if (!game) {
 			return interaction.reply('There is no active game in this channel! Try using `/game start` instead.');
 		}
-		
+
 		// check if the user has permission to kick, can be used immediately by moderators, otherwise needs a vote
 		if (interaction.memberPermissions?.has(PermissionFlagsBits.KickMembers)) {
 			this.removePlayer(interaction);
-			return interaction.reply({content: 'Since you have the permission to kick members, the player has been kicked from the game without a vote.', ephemeral: true});
+			return interaction.reply({
+				content: 'Since you have the permission to kick members, the player has been kicked from the game without a vote.',
+				ephemeral: true
+			});
 		}
 		// check if the user is in the game
 		if (!game.players[interaction.user.id]) {
@@ -312,43 +351,67 @@ export class GameCommand extends Subcommand {
 		}
 		// start a vote to kick the player
 		const players = Object.keys(game.players);
-		interaction.channel?.send(new MessageBuilder().setEmbeds([{
-			title: `${interaction.user.displayName} is voting to kick <@${interaction.options.getUser('player')?.id || ""}>!`,
-			description: `Please vote by clicking yes or no below. If the majority votes yes, the player will be kicked.`
-		}]).setComponents([{
-			type: 1,
-			components: [
-				{
-					type: 2,
-					style: 1,
-					customId: 'kickplayer',
-					label: 'Yes'
-				},
-				{
-					type: 2,
-					style: 4,
-					customId: 'dontkickplayer',
-					label: 'No'
-				}
-			]
-		}])).then(async (m) => {
-			const collector = m.channel.createMessageComponentCollector({ componentType: ComponentType.Button, time: 60000 });
-			let votes = 0;
-			let kickVotes = 0;
-			let dontKickVotes = 0;
-			let voted: string[] = [];
-			collector.on('collect', async (i) => {
-				if (players.includes(i.user.id) && !voted.includes(i.user.id)) {
-					if (i.customId == 'kickplayer') {
-						kickVotes++;
-						votes++;
-						voted.push(i.user.id);
-					} else if (i.customId == 'dontkickplayer') {
-						dontKickVotes++;
-						votes++;
-						voted.push(i.user.id);
+		interaction.channel
+			?.send(
+				new MessageBuilder()
+					.setEmbeds([
+						{
+							title: `${interaction.user.displayName} is voting to kick <@${interaction.options.getUser('player')?.id || ''}>!`,
+							description: `Please vote by clicking yes or no below. If the majority votes yes, the player will be kicked.`
+						}
+					])
+					.setComponents([
+						{
+							type: 1,
+							components: [
+								{
+									type: 2,
+									style: 1,
+									customId: 'kickplayer',
+									label: 'Yes'
+								},
+								{
+									type: 2,
+									style: 4,
+									customId: 'dontkickplayer',
+									label: 'No'
+								}
+							]
+						}
+					])
+			)
+			.then(async (m) => {
+				const collector = m.channel.createMessageComponentCollector({ componentType: ComponentType.Button, time: 60000 });
+				let votes = 0;
+				let kickVotes = 0;
+				let dontKickVotes = 0;
+				let voted: string[] = [];
+				collector.on('collect', async (i) => {
+					if (players.includes(i.user.id) && !voted.includes(i.user.id)) {
+						if (i.customId == 'kickplayer') {
+							kickVotes++;
+							votes++;
+							voted.push(i.user.id);
+						} else if (i.customId == 'dontkickplayer') {
+							dontKickVotes++;
+							votes++;
+							voted.push(i.user.id);
+						}
+						if (votes >= players.length) {
+							if (kickVotes > dontKickVotes) {
+								this.removePlayer(interaction);
+								return m.channel.send('The player has been kicked!');
+							} else {
+								return m.channel.send('The player has not been kicked!');
+							}
+						}
+						return i.reply({ content: 'You have voted!', ephemeral: true });
 					}
-					if (votes >= players.length) {
+					return i.reply(`<@${i.user.id}>, you are not in the game!`);
+				});
+				collector.on('end', async (_collected, reason) => {
+					if (reason == 'time') {
+						// Check the votes
 						if (kickVotes > dontKickVotes) {
 							this.removePlayer(interaction);
 							return m.channel.send('The player has been kicked!');
@@ -356,23 +419,9 @@ export class GameCommand extends Subcommand {
 							return m.channel.send('The player has not been kicked!');
 						}
 					}
-					return i.reply({ content: 'You have voted!', ephemeral: true })
-				}
-				return i.reply(`<@${i.user.id}>, you are not in the game!`);
+					return;
+				});
 			});
-			collector.on('end', async (_collected, reason) => {
-				if (reason == 'time') {
-					// Check the votes
-					if (kickVotes > dontKickVotes) {
-						this.removePlayer(interaction);
-						return m.channel.send('The player has been kicked!');
-					} else {
-						return m.channel.send('The player has not been kicked!');
-					}
-				}
-				return
-			});
-		});
 		return interaction.reply('In progress');
 	}
 
@@ -380,7 +429,7 @@ export class GameCommand extends Subcommand {
 		const channel = interaction.options.getChannel('channel') || interaction.channel;
 		// check if channel referenced is somehow outside of the server or not visible to the bot
 		if (!channel || interaction.guild?.channels.cache.get(channel.id) == undefined) {
-			return interaction.reply({content: 'Invalid channel, is it outside of the server or maybe one I cannot see?', ephemeral: true});
+			return interaction.reply({ content: 'Invalid channel, is it outside of the server or maybe one I cannot see?', ephemeral: true });
 		}
 		const game = await container.game.findOne({ channel: channel.id });
 		if (!game) {
@@ -423,19 +472,27 @@ export class GameCommand extends Subcommand {
 		const game = await container.game.findOne({ channel: interaction.channel?.id });
 		if (!game) {
 			console.error('Game not found, but vote passed? Did the game end before the vote was completed?');
-			interaction.channel?.send('Hmm, something went wrong when trying to kick the player. Please try again, if the issue persists, contact the bot owner.');
-			return
+			interaction.channel?.send(
+				'Hmm, something went wrong when trying to kick the player. Please try again, if the issue persists, contact the bot owner.'
+			);
+			return;
 		}
 		game.players = Object.fromEntries(Object.entries(game.players).filter(([key, _value]) => key != interaction.options.getUser('player')?.id));
 		if (Object.keys(game.players).length < 1) {
 			await container.game.deleteOne({ channel: interaction.channel?.id });
 			return interaction.reply('The player has been kicked! The game has ended.');
 		} else {
-			await container.mongoClient
-				.db('test')
-				.collection('game')
-				.updateOne({ channel: interaction.channel?.id }, { $set: { players: game.players } });
-			return interaction.reply(
+			//@ts-ignore
+			const newState = await container.gl.removePlayer(game, interaction.options.getUser('player')?.id);
+
+			await container.game.updateOne({ channel: interaction.channel?.id }, { $set: { players: game.players } });
+
+			if (game.state.currentPlayer.userId != newState.state.currentPlayer?.userId) {
+				interaction.channel?.send(
+					`It is now <@${newState.state.currentPlayer?.userId}>'s turn, as <@${game.state.currentPlayer.userId}> has been kicked from the game.`
+				);
+			}
+			return interaction.channel?.send(
 				new MessageBuilder().setEmbeds([
 					{
 						title: `${interaction.options.getUser('player')?.username} has been kicked from the game!`,
@@ -489,13 +546,10 @@ export class GameCommand extends Subcommand {
 							return i.reply('Invalid character!');
 						}
 						// Add the character to the game
-						await container.mongoClient
-							.db('test')
-							.collection('game')
-							.updateOne(
-								{ channel: gameInit.channel },
-								{ $set: { players: { [i.user.id]: { character: character._id.toString(), deck: '' } } } }
-							);
+						await container.game.updateOne(
+							{ channel: gameInit.channel },
+							{ $set: { players: { [i.user.id]: { character: character._id.toString(), deck: '' } } } }
+						);
 						return i.reply(
 							new MessageBuilder()
 								.setEmbeds([
@@ -533,23 +587,20 @@ export class GameCommand extends Subcommand {
 						}
 						characterID = characterID.players[i.user.id].character;
 
-						await container.mongoClient
-							.db('test')
-							.collection('game')
-							.updateOne(
-								{ channel: gameInit.channel },
-								{
-									$set: {
-										players: {
-											...gameInit.players,
-											[i.user.id]: {
-												character: characterID,
-												deck: deck._id?.toString()
-											}
+						await container.game.updateOne(
+							{ channel: gameInit.channel },
+							{
+								$set: {
+									players: {
+										...gameInit.players,
+										[i.user.id]: {
+											character: characterID,
+											deck: deck._id?.toString()
 										}
 									}
 								}
-							);
+							}
+						);
 						i.reply('You have chosen your character and deck!');
 						collector.stop();
 						return;
@@ -563,5 +614,95 @@ export class GameCommand extends Subcommand {
 					}
 				});
 			});
+	}
+
+	public async joinVote(interaction: Subcommand.ChatInputCommandInteraction) {
+		return new Promise(async (resolve, reject) => {
+			const game = await container.game.findOne({ channel: interaction.channel?.id });
+			if (!game) {
+				return reject('Game not found');
+			}
+			console.log(game);
+			//@ts-ignore
+			const players = Object.keys(game.players);
+			interaction.channel
+				?.send(
+					new MessageBuilder()
+						.setEmbeds([
+							{
+								title: `${interaction.user.displayName} is voting to join the game!`,
+								description: `Please vote by clicking yes or no below. If the majority votes yes, the player will join the game.`
+							}
+						])
+						.setComponents([
+							{
+								type: 1,
+								components: [
+									{
+										type: 2,
+										style: 1,
+										customId: 'joingame',
+										label: 'Yes'
+									},
+									{
+										type: 2,
+										style: 4,
+										customId: 'dontjoingame',
+										label: 'No'
+									}
+								]
+							}
+						])
+				)
+				.then(async (m) => {
+					const collector = m.channel.createMessageComponentCollector({ componentType: ComponentType.Button, time: 60000 });
+					let votes = 0;
+					let joinVotes = 0;
+					let dontJoinVotes = 0;
+					let voted: string[] = [];
+					collector.on('collect', async (i) => {
+						try {
+							if (voted.includes(i.user.id)) {
+								return await i.reply({ content: 'You have already voted!', ephemeral: true });
+							}
+							if (players.includes(i.user.id)) {
+								if (i.customId == 'joingame') {
+									joinVotes++;
+									votes++;
+									voted.push(i.user.id);
+								} else if (i.customId == 'dontjoingame') {
+									dontJoinVotes++;
+									votes++;
+									voted.push(i.user.id);
+								}
+								if (votes >= players.length) {
+									console.log('is it this crashing');
+									await i.reply({ content: 'You have voted!', ephemeral: true });
+									collector.stop();
+									return
+								}
+								console.log('or maybe this');
+								return await i.reply({ content: 'You have voted!', ephemeral: true });
+							}
+							return i.channel?.send(`<@${i.user.id}>, you are not in the game!`);
+						} catch (e) {
+							console.error(e);
+							return i.channel?.send(
+								'An error occurred while processing your vote. This MAY mean it got counted, but please try again.'
+							);
+						}
+					});
+					collector.on('end', async (_collected) => {
+							// Check the votes
+							if (joinVotes > dontJoinVotes) {
+								await m.channel.send(`<@${interaction.user.id}> has joined the game!`);
+								await m.delete();
+								return resolve(true);
+							}
+							return resolve(false);
+						
+					});
+				});
+		});
 	}
 }

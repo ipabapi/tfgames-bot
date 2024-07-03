@@ -113,8 +113,8 @@ export interface Inventory {
 export interface GameState {
     currentPlayer: Player | null; // the player whose turn it is
     turnOrder: Player[]; // the order of the players
-    deck: Card[]; // the deck of cards
-    discard: Card[]; // the discard pile
+    deck: string[]; // the deck of cards
+    discard: string[]; // the discard pile
     lastCard: Card | null; // the last card played
     lastPlayer: Player | null; // the last player to play a card
     lastAction: string | null; // the last action that happened, mainly for logging
@@ -162,6 +162,7 @@ export interface Deck {
 export interface Card {
     _id: ObjectId;
     stringID: string;
+    image?: string; //TODO: Make non-optional later
     name: string;
     description: string;
     effect: CardEffect;

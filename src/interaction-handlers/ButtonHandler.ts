@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
 import type { ButtonInteraction } from 'discord.js';
 
@@ -15,6 +16,7 @@ export class ButtonHandler extends InteractionHandler {
     }
 
     public async run(interaction: ButtonInteraction) {
+        return;
         await interaction.reply({
             content: 'Loading...',
             // Let's make it so only the person who pressed the button can see this message!
@@ -33,6 +35,9 @@ export class ButtonHandler extends InteractionHandler {
                 break;
             case `back`:
                 this.back(interaction)
+                break;
+            default:
+                console.log(`Button not found`)
                 break;
                 
         }

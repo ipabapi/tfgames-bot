@@ -1,5 +1,5 @@
 import { Command, container } from '@sapphire/framework';
-import { Card, Game, GameStatus} from '../lib/bot.types';
+import { Game, GameStatus} from '../lib/bot.types';
 import { ObjectId } from 'mongodb';
 
 
@@ -19,20 +19,7 @@ export async function gameSetup(interaction: Command.ChatInputCommandInteraction
 
     interaction.channel?.send({ content: `Okay, I grabbed ${decks.length} decks, containing ${decks.reduce((acc, deck) => acc + deck?.cardIds.length, 0)} cards. Let's shuffle them up and get started!` });
 
-    const cardIds = decks.flatMap(deck => deck ? deck.cardIds : []);
-    // trim out any undefined values or duplicates
-    const uniqueCardIds = [...new Set(cardIds.filter(Boolean))];
-    const cards = await getCardsFromIds(uniqueCardIds);
-    const cardNames = cards.map(card => card as Card);
-
-    // Duplicates were originally trimmed to prevent multiple redundant calls to the database, but now we need to know how many of each card there are and put them in an array with the right amount of each card
-    let finalCards: Card[] = [];
-    cardNames.forEach(card => {
-        const cardCount = cardIds.filter(id => id === card?.stringID).length;
-        for (let i = 0; i < cardCount; i++) {
-            finalCards.push(card);
-        }
-    });
+    const finalCards = decks.flatMap(deck => deck ? deck.cardIds : []);
     // Shuffle the cards
     for (let i = finalCards.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -63,8 +50,4 @@ export async function gameSetup(interaction: Command.ChatInputCommandInteraction
     await container.game.updateOne({ channel: game.channel }, { $set: { state: game.state } });
     return interaction.reply({ content: `still in progress`, ephemeral: true });
 
-}
-
-async function getCardsFromIds(cardIds: string[]) {
-    return await Promise.all(cardIds.map(cardId => container.cards.findOne({ stringID: cardId })));
 }

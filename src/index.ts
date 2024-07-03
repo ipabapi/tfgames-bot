@@ -6,6 +6,7 @@ import { MongoClient } from 'mongodb';
 import '@sapphire/plugin-hmr/register';
 import {DeckBusinessLogic} from "./BusinessLogic/deckBL";
 import { basicCommandUtils} from "./BusinessLogic/basicCommandUtils";
+import { GameLogic } from './BusinessLogic/turnLogic';
 
 // Declare items to be on the container
 
@@ -21,7 +22,8 @@ declare module '@sapphire/framework' {
 		deck: import('mongodb').Collection;
 		cards: import('mongodb').Collection;
 		guilds: import('mongodb').Collection;
-		characters: import('mongodb').Collection
+		characters: import('mongodb').Collection;
+		gl: GameLogic;
 	}
 }
 
@@ -52,6 +54,7 @@ const main = async () => {
 			// container.mongoClient = await MongoClient.connect(mongoUri);
 			// container.mongoClient.on('error', (error) => client.logger.error(error));
 			// container.testDB = container.mongoClient.db('test');
+			container.gl = new GameLogic();
 			const mongoDB = await MongoClient.connect(mongoUri);
 			container.db = mongoDB.db('test');
 			container.users = container.db.collection('users');

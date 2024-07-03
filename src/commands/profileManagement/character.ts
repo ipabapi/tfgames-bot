@@ -108,9 +108,8 @@ export class CharacterCommand extends Subcommand {
 	public async info(interaction: Subcommand.ChatInputCommandInteraction) {
 		let user;
 		if (interaction.options.getUser('user')) {
-			user = await this.container.mongoClient
-				.db('test')
-				.collection('users')
+			user = await this.container
+				.users
 				// @ts-ignore
 				.findOne({ userId: interaction.options.getUser('user').id });
 			if (!user) {
@@ -125,9 +124,8 @@ export class CharacterCommand extends Subcommand {
 			}
 		}
 
-		const character = await this.container.mongoClient
-			.db('test')
-			.collection('characters')
+		const character = await this.container
+			.characters
 			.findOne({ name: interaction.options.getString('name'), creator: user.userId });
 		if (!character) {
 			interaction.reply({ content: "I'm sorry, I couldn't find a character with that name.", ephemeral: true });
@@ -183,9 +181,8 @@ export class CharacterCommand extends Subcommand {
 		// Check if the user is in the database
 		let user;
 		if (interaction.options.getUser('user')) {
-			user = await this.container.mongoClient
-				.db('test')
-				.collection('users')
+			user = await this.container
+				.users
 				// @ts-ignore
 				.findOne({ userId: interaction.options.getUser('user').id });
 			if (!user) {
@@ -201,9 +198,8 @@ export class CharacterCommand extends Subcommand {
 		}
 
 		// check if the character exists
-		const character = await this.container.mongoClient
-			.db('test')
-			.collection('characters')
+		const character = await this.container
+.characters
 			.findOne({ name: interaction.options.getString('name'), creator: user.userId });
 		if (!character) {
 			interaction.reply({ content: "I'm sorry, I couldn't find a character with that name.", ephemeral: true });
@@ -236,9 +232,8 @@ export class CharacterCommand extends Subcommand {
 							// Name
 							newChara.name = message.content;
 							// Check if the name is already taken for this user
-							const checkName = await this.container.mongoClient
-								.db('test')
-								.collection('characters')
+							const checkName = await this.container
+								.characters
 								.findOne({ name: message.content, creator: user.userId });
 							if (checkName) {
 								message.channel.send("I'm sorry, you already have a character with that name. Please choose a different name.");
@@ -331,9 +326,8 @@ export class CharacterCommand extends Subcommand {
 										newChara.creator = interaction.user.id;
 										success = true;
 										try {
-											const result = await this.container.mongoClient
-												.db('test')
-												.collection('characters')
+											const result = await this.container
+												.characters
 												.updateOne({ name: interaction.options.getString('name'), creator: user.userId }, { $set: newChara });
 											if (result.modifiedCount === 1) {
 												message.channel.send('Character editing complete! You can now use this character in games.');
@@ -414,9 +408,8 @@ export class CharacterCommand extends Subcommand {
 							// Name
 							character.name = message.content;
 							// Check if the name is already taken for this user
-							const checkName = await this.container.mongoClient
-								.db('test')
-								.collection('characters')
+							const checkName = await this.container
+								.characters
 								.findOne({ name: message.content, creator: interaction.user.id });
 							if (checkName) {
 								message.channel.send("I'm sorry, you already have a character with that name. Please choose a different name.");
@@ -509,13 +502,11 @@ export class CharacterCommand extends Subcommand {
 										character.creator = interaction.user.id;
 										success = true;
 										try {
-											const newCharaId = await this.container.mongoClient
-												.db('test')
-												.collection('characters')
+											const newCharaId = await this.container
+												.characters
 												.insertOne(character);
-											const successCheck = await this.container.mongoClient
-												.db('test')
-												.collection('users')
+											const successCheck = await this.container
+												.users
 												.updateOne(
 													{ userId: interaction.user.id },
 													// @ts-ignore
@@ -582,23 +573,20 @@ export class CharacterCommand extends Subcommand {
 		}
 
 		// check if the character exists
-		const character = await this.container.mongoClient
-			.db('test')
-			.collection('characters')
+		const character = await this.container
+.characters
 			.findOne({ name: interaction.options.getString('name'), creator: interaction.user.id });
 		if (!character) {
 			interaction.reply({ content: "I'm sorry, I couldn't find a character with that name.", ephemeral: true });
 			return;
 		} else {
-			const result = await this.container.mongoClient
-				.db('test')
-				.collection('characters')
+			const result = await this.container
+.characters
 				.deleteOne({ name: interaction.options.getString('name'), creator: interaction.user.id });
 			if (result.deletedCount === 1) {
 				const newCharaList = user.characters.filter((c: string) => c !== character._id.toString());
-				await this.container.mongoClient
-					.db('test')
-					.collection('users')
+				await this.container
+.users
 					.updateOne({ userId: interaction.user.id }, { $set: { characters: newCharaList } });
 				interaction.reply({ content: 'Character deleted successfully!', ephemeral: true });
 			} else {
@@ -611,9 +599,8 @@ export class CharacterCommand extends Subcommand {
 		// Check if the user is in the database
 		let user;
 		if (interaction.options.getUser('user')) {
-			user = await this.container.mongoClient
-				.db('test')
-				.collection('users')
+			user = await this.container
+				.users
 				// @ts-ignore
 				.findOne({ userId: interaction.options.getUser('user').id });
 			if (!user) {
