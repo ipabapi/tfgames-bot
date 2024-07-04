@@ -47,3 +47,21 @@ export async function addGold(playerId: string, amount: number) {
         return itemString
         }
 }
+
+export async function useItem(playerId: string, item: string) {
+    let result = await container.inventory.find({playerId: playerId}).toArray();
+    if (result.length == 0) {
+        return "Unable to use the item. Make sure you actually have it"
+    } else {
+        const dict: { [key: string]: number } = result[0].item;
+        console.log(dict);
+        if (Object.keys(dict).includes(item)){
+            dict[item] = dict[item] - 1;
+            await container.inventory.updateOne({playerId:playerId},{$set:{playerId: playerId, item: dict, gold: result[0].gold}});
+            var card = await container.cards.find({stringID: item}).toArray()
+            return `Youve successfully used ${card[0].name}!`
+        } else{
+            return "Unable to use the item. Make sure you actually have it"
+        }
+    }
+}
