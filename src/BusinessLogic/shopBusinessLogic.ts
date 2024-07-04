@@ -5,11 +5,17 @@ export async function recieveItem(playerId: string, item: string) {
     if (result.length == 0) {
         const dict: { [key: string]: number } = {};
         dict[item] = 1
-        container.inventory.insertOne({playerId: playerId, item: dict, gold:0});
+        await container.inventory.insertOne({playerId: playerId, item: dict, gold:0});
     } else {
-        const dict: { [key: string]: number } = result[0].dict;
-        dict[item] = dict[item] + 1;
-        container.inventory.insertOne({playerId: playerId, item: dict, gold: result[0].gold});
+        const dict: { [key: string]: number } = result[0].item;
+        console.log(dict);
+        if (Object.keys(dict).includes(item)){
+            dict[item] = dict[item] + 1;
+        } else{
+            dict[item] = 1;
+        }
+        console.log(dict);
+        await container.inventory.updateOne({playerId:playerId},{$set:{playerId: playerId, item: dict, gold: result[0].gold}});
     }
 }
 
@@ -18,10 +24,10 @@ export async function addGold(playerId: string, amount: number) {
     let result = await container.inventory.find({playerId: playerId}).toArray();
     if (result.length == 0) {
         const dict: { [key: string]: number } = {};
-        container.inventory.insertOne({playerId: playerId, item: dict, gold:amount});
+        await container.inventory.insertOne({playerId: playerId, item: dict, gold:amount});
     } else {
-        const dict: { [key: string]: number } = result[0].dict;
-        container.inventory.insertOne({playerId: playerId, item: dict, gold: result[0].gold+=amount});
+        const dict: { [key: string]: number } = result[0].item;
+        await container.inventory.updateOne({playerId: playerId},{$set: {playerId: playerId, item: dict, gold: result[0].gold+=amount}});
     }
 }
 

@@ -1,5 +1,7 @@
 import { Subcommand } from "@sapphire/plugin-subcommands";
-import {showInventory} from "../../BusinessLogic/shopBusinessLogic";
+import {recieveItem, showInventory} from "../../BusinessLogic/shopBusinessLogic";
+import {MessageBuilder} from "@sapphire/discord.js-utilities";
+import {InteractionResponse} from "discord.js";
 
 export class Shop extends Subcommand {
   constructor(context: Subcommand.LoaderContext, options: Subcommand.Options) {
@@ -38,12 +40,6 @@ export class Shop extends Subcommand {
           subcommand
             .setName('buy')
             .setDescription('Buy an item from the shop!')
-            .addStringOption((option) =>
-                option
-                    .setName('item')
-                    .setDescription('The item you want to buy!')
-                    .setRequired(true)
-                )
         )
         .addSubcommand((subcommand) =>
           subcommand
@@ -65,10 +61,61 @@ export class Shop extends Subcommand {
   }
 
     public async buy(interaction: Subcommand.ChatInputCommandInteraction) {
-        const item = interaction.options.getString('item', true);
-        await interaction.reply(`You bought ${item}!`);
+      let user = interaction.user.id
+        interaction.reply(new MessageBuilder()
+            .setEmbeds([
+                {
+                    title: 'Cool shop',
+                    color: 0,
+                    description: 'The following items are able to be purchased:\n- Shield - 20 gold\n- Reverse - 15 Gold',
+                    footer: {
+                        text: `test`
+                    }
+                }
+            ])
+            .setComponents([
+                {
+                    type: 1,
+                    components: [
+                        {
+                            type: 2,
+                            style: 2,
+                            label: 'Shield',
+                            custom_id: 'shield'
+                        },
+                        {
+                            type: 2,
+                            style: 2,
+                            label: 'Reverse',
+                            custom_id: 'reverse'
+                        }
+                    ]
+                }
+            ])
+    )
+    .then(
+        async (msg: InteractionResponse) => {
+            const collector = msg.createMessageComponentCollector({
+                filter: (interaction) => interaction.user.id === user,
+                time: 300000
+            });
+            collector.on('collect', async (interaction) => {
+                if (interaction.customId === 'shield') {
+                        await interaction.reply('Shield has been bought');
+                        await recieveItem(user,"card_0010")
+                } else if (interaction.customId === 'reverse') {
+                    await interaction.reply('Reverse has been bought')
+                    await recieveItem(user,"card_0011")
+                } else {
+                    await interaction.editReply('How did you do that?')
+                }
+            });
+            collector.on('end', async () => {
+                    await interaction.reply('Interaction has timed out')
+            });
+        }
+        );
     }
-
     public async sell(interaction: Subcommand.ChatInputCommandInteraction) {
         const item = interaction.options.getString('item', true);
         await interaction.reply(`You sold ${item}!`);
