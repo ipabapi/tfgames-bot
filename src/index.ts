@@ -2,7 +2,7 @@ import './lib/setup';
 
 import { LogLevel, SapphireClient, container } from '@sapphire/framework';
 import {GatewayIntentBits} from 'discord.js';
-import { MongoClient } from 'mongodb';
+import {MongoClient} from 'mongodb';
 import '@sapphire/plugin-hmr/register';
 import {DeckBusinessLogic} from "./BusinessLogic/deckBL";
 import { basicCommandUtils} from "./BusinessLogic/basicCommandUtils";
@@ -23,6 +23,7 @@ declare module '@sapphire/framework' {
 		cards: import('mongodb').Collection;
 		guilds: import('mongodb').Collection;
 		characters: import('mongodb').Collection;
+		inventory: import('mongodb').Collection;
 		gl: GameLogic;
 	}
 }
@@ -63,6 +64,7 @@ const main = async () => {
 			container.cards = container.db.collection('cards');
 			container.guilds = container.db.collection('guilds');
 			container.characters = container.db.collection('characters');
+			container.inventory = container.db.collection('inventory');
 			container.utils = basicCommandUtils;
 			client.logger.info('Connected to MongoDB');
 		} catch (error) {

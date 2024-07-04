@@ -1,4 +1,5 @@
 import { Subcommand } from "@sapphire/plugin-subcommands";
+import {showInventory} from "../../BusinessLogic/shopBusinessLogic";
 
 export class Shop extends Subcommand {
   constructor(context: Subcommand.LoaderContext, options: Subcommand.Options) {
@@ -74,6 +75,8 @@ export class Shop extends Subcommand {
     }
 
     public async inventory(interaction: Subcommand.ChatInputCommandInteraction) {
-        await interaction.reply('You have 10 apples!');
+        let itemString = `# Inventory for ${interaction.user.tag}\n`
+        itemString += await showInventory(interaction.user.id)
+        interaction.reply({content: itemString, ephemeral: true});
     }
 }

@@ -1,6 +1,7 @@
 import { MessageBuilder } from '@sapphire/discord.js-utilities';
 import { Command } from '@sapphire/framework';
-import { CardRarity, GameStatus } from '../../lib/bot.types';
+import {Card, CardRarity, CardType, GameStatus} from '../../lib/bot.types';
+import {addGold, recieveItem} from "../../BusinessLogic/shopBusinessLogic";
 
 export const rarityColors = {
     [CardRarity.COMMON]: 0xFFFFFF,
@@ -52,7 +53,8 @@ export class DrawCommand extends Command {
         const card = newGameState.lastCard 
         if (!card) return interaction.reply('No card drawn! This should not happen!');
         
-
+        // parse Card effects
+            this.parseCard(card, interaction.user.id)
         // Reply
         return interaction.reply(new MessageBuilder()
         .setEmbeds([{
@@ -72,5 +74,22 @@ export class DrawCommand extends Command {
         
 
 
+    }
+    
+    private async parseCard(card: Card, userId: string){
+        switch (card.type){
+            case CardType.ITEM:
+                this.addItemToInventory(card.stringID, userId);
+                break
+            case CardType.GOLD:
+                this.addGold(parseInt(card.effect.action),userId)
+        }
+    }
+    
+    private async addItemToInventory(stringId: string, userId: string){
+        recieveItem(userId,stringId)
+    }
+    private async addGold(amount: number, userId: string){
+        addGold(userId,amount)
     }
 }
