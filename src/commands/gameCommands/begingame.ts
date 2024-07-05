@@ -3,7 +3,7 @@ import { Game, GameStatus } from '../../lib/bot.types';
 import { gameSetup } from '../../BusinessLogic/gameSetup';
 
 export class BeginGameCommand extends Command {
-    public constructor(context: Command.Context) {
+    public constructor(context: Command.LoaderContext) {
         super(context, {
             name: 'begingame',
             description: 'Begin a game once all players have joined',

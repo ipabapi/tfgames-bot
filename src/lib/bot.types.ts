@@ -195,3 +195,15 @@ export enum CardRarity {
     EPIC = 'EPIC',
     LEGENDARY = 'LEGENDARY'
 }
+
+export enum ItemNamesHuman {
+    shield = 'Shield',
+    reverse = 'Reverse',
+    extraTurn = 'Extra Turn',
+    cleanse = 'Cleanse',
+    steal = 'Steal',
+    tempLock = 'Temporary Lock',
+    tempCollar = 'Temporary Collar',
+    permaCollar = 'Permanent Collar',
+    collarKey = 'Collar Key'
+}

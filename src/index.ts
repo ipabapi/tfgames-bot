@@ -23,7 +23,6 @@ declare module '@sapphire/framework' {
 		cards: import('mongodb').Collection;
 		guilds: import('mongodb').Collection;
 		characters: import('mongodb').Collection;
-		inventory: import('mongodb').Collection;
 		gl: GameLogic;
 	}
 }
@@ -64,7 +63,6 @@ const main = async () => {
 			container.cards = container.db.collection('cards');
 			container.guilds = container.db.collection('guilds');
 			container.characters = container.db.collection('characters');
-			container.inventory = container.db.collection('inventory');
 			container.utils = basicCommandUtils;
 			client.logger.info('Connected to MongoDB');
 		} catch (error) {

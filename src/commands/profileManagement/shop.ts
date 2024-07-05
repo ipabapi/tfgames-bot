@@ -1,7 +1,8 @@
 import { Subcommand } from "@sapphire/plugin-subcommands";
-import {recieveItem, showInventory} from "../../BusinessLogic/shopBusinessLogic";
+import {recieveItem} from "../../BusinessLogic/shopBusinessLogic";
 import {MessageBuilder} from "@sapphire/discord.js-utilities";
-import {InteractionResponse} from "discord.js";
+import {ComponentType, InteractionResponse} from "discord.js";
+import { initialShopInventory } from "../../lib/initials";
 
 export class Shop extends Subcommand {
   constructor(context: Subcommand.LoaderContext, options: Subcommand.Options) {
@@ -20,11 +21,6 @@ export class Shop extends Subcommand {
             'name': 'sell',
             'messageRun': 'sell',
             'chatInputRun': 'sell'
-        },
-        {
-            'name': 'inventory',
-            'messageRun': 'inventory',
-            'chatInputRun': 'inventory'
         }
       ]
     });
@@ -52,22 +48,20 @@ export class Shop extends Subcommand {
                     .setRequired(true)
                 )
         )
-        .addSubcommand((subcommand) =>
-          subcommand
-            .setName('inventory')
-            .setDescription('Check your inventory!')
-        )
     );
   }
 
     public async buy(interaction: Subcommand.ChatInputCommandInteraction) {
       let user = interaction.user.id
+      const items = Object.entries(initialShopInventory).map(([key, value]) => ({label: value.name, value: key}));
+
         interaction.reply(new MessageBuilder()
             .setEmbeds([
                 {
                     title: 'Cool shop',
                     color: 0,
-                    description: 'The following items are able to be purchased:\n- Shield - 20 gold\n- Reverse - 15 Gold',
+                    // @ts-ignore
+                    description: `These items are available for purchase!\n\n${items.map((item) => `${item.label}: ${initialShopInventory[item.value].cost}`).join('\n')}`,
                     footer: {
                         text: `test`
                     }
@@ -78,16 +72,9 @@ export class Shop extends Subcommand {
                     type: 1,
                     components: [
                         {
-                            type: 2,
-                            style: 2,
-                            label: 'Shield',
-                            custom_id: 'shield'
-                        },
-                        {
-                            type: 2,
-                            style: 2,
-                            label: 'Reverse',
-                            custom_id: 'reverse'
+                            type: 3,
+                            custom_id: 'choose',
+                            options: items,
                         }
                     ]
                 }
@@ -96,34 +83,34 @@ export class Shop extends Subcommand {
     .then(
         async (msg: InteractionResponse) => {
             const collector = msg.createMessageComponentCollector({
+                componentType: ComponentType.StringSelect,
                 filter: (interaction) => interaction.user.id === user,
                 time: 300000
             });
             collector.on('collect', async (interaction) => {
-                if (interaction.customId === 'shield') {
-                        await interaction.reply('Shield has been bought');
-                        await recieveItem(user,"card_0010")
-                } else if (interaction.customId === 'reverse') {
-                    await interaction.reply('Reverse has been bought')
-                    await recieveItem(user,"card_0011")
+                const item = interaction.values[0];
+                // @ts-ignore
+                const [success, error] = await recieveItem(user, item, interaction.guild.id, initialShopInventory[item].cost, true);
+                if (success) {
+                    await interaction.reply(`You have purchased ${item}!`);
+                    collector.stop()
                 } else {
-                    await interaction.editReply('How did you do that?')
+                    await interaction.reply(`${error == "GOLD_NOT_ENOUGH" ? "You don't have enough gold!" : "Item not found!"}`);
+                    collector.stop()
                 }
             });
-            collector.on('end', async () => {
-                    await interaction.reply('Interaction has timed out')
+            collector.on('end', async (_collected, reason) => {
+                    if (reason === 'time') {
+                        await interaction.reply('You took too long to respond!');
+                    }
+                msg.delete();
             });
         }
         );
     }
     public async sell(interaction: Subcommand.ChatInputCommandInteraction) {
-        const item = interaction.options.getString('item', true);
-        await interaction.reply(`You sold ${item}!`);
+        await interaction.reply('This command is not implemented yet');
     }
 
-    public async inventory(interaction: Subcommand.ChatInputCommandInteraction) {
-        let itemString = `# Inventory for ${interaction.user.tag}\n`
-        itemString += await showInventory(interaction.user.id)
-        interaction.reply({content: itemString, ephemeral: true});
-    }
+   
 }

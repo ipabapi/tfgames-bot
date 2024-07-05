@@ -1,67 +1,67 @@
-import {container} from "@sapphire/framework";
-export async function recieveItem(playerId: string, item: string) {
+import { container } from '@sapphire/framework';
+import { initialGuildInfo } from '../lib/initials';
+import { Player } from '../lib/bot.types';
 
-    let result = await container.inventory.find({playerId: playerId}).toArray();
-    if (result.length == 0) {
-        const dict: { [key: string]: number } = {};
-        dict[item] = 1
-        await container.inventory.insertOne({playerId: playerId, item: dict, gold:0});
-    } else {
-        const dict: { [key: string]: number } = result[0].item;
-        console.log(dict);
-        if (Object.keys(dict).includes(item)){
-            dict[item] = dict[item] + 1;
-        } else{
-            dict[item] = 1;
-        }
-        console.log(dict);
-        await container.inventory.updateOne({playerId:playerId},{$set:{playerId: playerId, item: dict, gold: result[0].gold}});
-    }
+export async function makeInv() {
+	return initialGuildInfo;
 }
 
-export async function addGold(playerId: string, amount: number) {
-
-    let result = await container.inventory.find({playerId: playerId}).toArray();
-    if (result.length == 0) {
-        const dict: { [key: string]: number } = {};
-        await container.inventory.insertOne({playerId: playerId, item: dict, gold:amount});
-    } else {
-        const dict: { [key: string]: number } = result[0].item;
-        await container.inventory.updateOne({playerId: playerId},{$set: {playerId: playerId, item: dict, gold: result[0].gold+=amount}});
-    }
+export async function recieveItem(playerId: string, item: string, guildId: string, goldCost: number, type: boolean) {
+	const user = (await container.users.findOne({ userId: playerId })) as unknown as Player;
+	const result = user.guilds[guildId];
+	if (!Object.keys(result.inventory).includes(item)) {
+		return [false, 'ITEM_NOT_FOUND'];
+	}
+	if (type) {
+		// if the item is a shop transaction
+		if (result.gold < goldCost) {
+			return [false, 'GOLD_NOT_ENOUGH'];
+		} else {
+			result.gold -= goldCost;
+		}
+	}
+	// @ts-ignore
+	result.inventory[item] += 1;
+	const final = { ...user.guilds, [guildId]: result };
+	await container.users.updateOne({ userId: playerId }, { $set: { guilds: final } });
+	return [true, null];
 }
 
-    export async function showInventory(playerId: string){
-        let result = await container.inventory.find({playerId: playerId}).toArray();
-        if (result.length == 0){
-            return "Its as empty as my soul..."
-        }else{
-        const dict = result[0].item;
-        let keys = Object.keys(dict);
-        let itemString = '';
-        for (const item of keys){
-            var card = await container.cards.find({stringID: item}).toArray()
-            itemString += "- "+card[0].name +" - "+ dict[item]+"x\n"
-        }
-        itemString += 'Gold: '+ result[0].gold
-        return itemString
-        }
+export async function addGold(playerId: string, amount: number, guildId: string) {
+	const result = await container.users.findOne({ userId: playerId }) as unknown as Player;
+    if (!Object.keys(result.guilds).includes(guildId)) {
+        return false;
+    }
+    const guild = result.guilds[guildId];
+    guild.gold += amount;
+    const final = { ...result.guilds, [guildId]: guild };
+    await container.users.updateOne({ userId: playerId }, { $set: { guilds: final } });
+    return true;
 }
 
-export async function useItem(playerId: string, item: string) {
-    let result = await container.inventory.find({playerId: playerId}).toArray();
-    if (result.length == 0) {
-        return "Unable to use the item. Make sure you actually have it"
-    } else {
-        const dict: { [key: string]: number } = result[0].item;
-        console.log(dict);
-        if (Object.keys(dict).includes(item)){
-            dict[item] = dict[item] - 1;
-            await container.inventory.updateOne({playerId:playerId},{$set:{playerId: playerId, item: dict, gold: result[0].gold}});
-            var card = await container.cards.find({stringID: item}).toArray()
-            return `Youve successfully used ${card[0].name}!`
-        } else{
-            return "Unable to use the item. Make sure you actually have it"
-        }
+export async function showInventory(playerId: string, guildId: string) {
+	const result = await container.users.findOne({ userId: playerId }) as unknown as Player;
+    console.log(result.guilds)
+    if (!Object.keys(result.guilds).includes(guildId)) {
+        return [false, {}]
     }
+    console.log(result.guilds[guildId].inventory)
+    return [true, result.guilds[guildId].inventory];
+}
+
+export async function useItem(playerId: string, item: string, guildId: string) {
+	let result = await container.users.findOne({ userId: playerId }) as unknown as Player;
+    if (!Object.keys(result.guilds).includes(item)) {
+        return [false, 'ITEM_NOT_FOUND'];
+    }
+    // @ts-ignore
+    if (result.guilds[guildId].inventory[item] < 1) {
+        return [false, 'NOT_ENOUGH_ITEM'];
+    }
+
+    // @ts-ignore
+    result.guilds[guildId].inventory[item] -= 1;
+    const final = { ...result.guilds, [guildId]: result.guilds[guildId] };
+    await container.users.updateOne({ userId: playerId }, { $set: { guilds: final } });
+    return [true, null];
 }

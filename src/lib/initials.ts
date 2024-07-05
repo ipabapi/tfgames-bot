@@ -86,3 +86,36 @@ export const initialGame: Game = {
     state: initialGameState,
     gameMode: GameMode.NORMAL,
 }
+
+export const initialShopInventory = {
+    shield: {
+        name: 'Shield',
+        description: 'Prevent the next effect that would happen to you',
+        cost: 5
+    },
+    reverse: {
+        name: 'Reverse',
+        description: 'Reverse the next effect that would happen to you',
+        cost: 15
+    },
+    extraTurn: {
+        name: 'Extra Turn',
+        description: 'Take an extra turn',
+        cost: 100
+    },
+    reroll: {
+        name: 'Reroll',
+        description: 'Reroll your character',
+        cost: 25
+    },
+    steal: {
+        name: 'Steal',
+        description: 'Steal an item from another player',
+        cost: 50
+    },
+    cleanse: {
+        name: 'Cleanse',
+        description: 'Remove all effects from you',
+        cost: 20
+    },
+}

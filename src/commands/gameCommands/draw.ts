@@ -54,7 +54,7 @@ export class DrawCommand extends Command {
         if (!card) return interaction.reply('No card drawn! This should not happen!');
         
         // parse Card effects
-            this.parseCard(card, interaction.user.id)
+            this.parseCard(card, interaction.user.id, interaction.guild.id)
         // Reply
         return interaction.reply(new MessageBuilder()
         .setEmbeds([{
@@ -76,20 +76,20 @@ export class DrawCommand extends Command {
 
     }
     
-    private async parseCard(card: Card, userId: string){
+    private async parseCard(card: Card, userId: string, guildId: string){
         switch (card.type){
             case CardType.ITEM:
-                this.addItemToInventory(card.stringID, userId);
+                this.addItemToInventory(card.stringID, userId, guildId)
                 break
             case CardType.GOLD:
-                this.addGold(parseInt(card.effect.action),userId)
+                this.addGold(parseInt(card.effect.action),userId, guildId)
         }
     }
     
-    private async addItemToInventory(stringId: string, userId: string){
-        recieveItem(userId,stringId)
+    private async addItemToInventory(stringId: string, userId: string, guildId: string){
+        recieveItem(userId, stringId, guildId, 0, false)
     }
-    private async addGold(amount: number, userId: string){
-        addGold(userId,amount)
+    private async addGold(amount: number, userId: string, guildId: string){
+        addGold(userId,amount, guildId)
     }
 }

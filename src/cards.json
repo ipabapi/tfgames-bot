@@ -27,6 +27,7 @@
     {
         "stringID": "card_0002",
         "name": "Mind Transformation",
+        "image": "https://i.ibb.co/YdstRjv/mindTF.jpg",
         "description": "",
         "effect": {
             "tags": [
@@ -76,6 +77,7 @@
     {
         "stringID": "card_0004",
         "name": "Inanimate Transformation",
+        "image": "https://i.ibb.co/brm4tLZ/inanimate-TF.jpg",
         "description": "",
         "effect": {
             "tags": [
@@ -125,6 +127,7 @@
     {
         "stringID": "card_0006",
         "name": "Body Swap",
+        "image": "https://i.ibb.co/qpqbWfx/bodyswap-TF.jpg",
         "description": "",
         "effect": {
             "tags": [
@@ -149,6 +152,7 @@
     {
         "stringID": "card_0007",
         "name": "Cleanse",
+        "image": "https://i.ibb.co/LNC0wdZ/cleanse-IT.jpg",
         "description": "",
         "effect": {
             "tags": [
@@ -172,7 +176,7 @@
     {
         "stringID": "card_0008",
         "name": "Fail",
-        "description": "",
+        "description": "https://i.ibb.co/92VJGzJ/failSys.jpg",
         "effect": {
             "tags": [
                 "fail",
@@ -196,6 +200,7 @@
     {
         "stringID": "card_0009",
         "name": "Luck",
+        "image": "https://i.ibb.co/zhkktPf/luckySys.jpg",
         "description": "",
         "effect": {
             "tags": [
@@ -220,6 +225,7 @@
     {
         "stringID": "card_0010",
         "name": "Shield",
+        "image": "https://i.ibb.co/4F6psbh/shieldIT.jpg",
         "description": "",
         "effect": {
             "tags": [
