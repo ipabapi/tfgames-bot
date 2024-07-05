@@ -87,7 +87,7 @@ export class DrawCommand extends Command {
     }
     
     private async addItemToInventory(stringId: string, userId: string, guildId: string){
-        recieveItem(userId, stringId, guildId, 0, false)
+        recieveItem(userId, stringId, guildId)
     }
     private async addGold(amount: number, userId: string, guildId: string){
         addGold(userId,amount, guildId)

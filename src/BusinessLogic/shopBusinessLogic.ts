@@ -6,25 +6,25 @@ export async function makeInv() {
 	return initialGuildInfo;
 }
 
-export async function recieveItem(playerId: string, item: string, guildId: string, goldCost: number, type: boolean) {
-	const user = (await container.users.findOne({ userId: playerId })) as unknown as Player;
-	const result = user.guilds[guildId];
-	if (!Object.keys(result.inventory).includes(item)) {
-		return [false, 'ITEM_NOT_FOUND'];
-	}
-	if (type) {
-		// if the item is a shop transaction
-		if (result.gold < goldCost) {
-			return [false, 'GOLD_NOT_ENOUGH'];
-		} else {
-			result.gold -= goldCost;
-		}
-	}
-	// @ts-ignore
-	result.inventory[item] += 1;
-	const final = { ...user.guilds, [guildId]: result };
-	await container.users.updateOne({ userId: playerId }, { $set: { guilds: final } });
-	return [true, null];
+export async function recieveItem(playerId: string, item: string, guildId: string, goldCost?: number) {
+    const user = (await container.users.findOne({ userId: playerId })) as unknown as Player;
+    const result = user.guilds[guildId];
+    if (!Object.keys(result.inventory).includes(item)) {
+        return [false, 'ITEM_NOT_FOUND'];
+    }
+    if (typeof goldCost !== 'undefined') {
+        // if the item is a shop transaction
+        if (result.gold < goldCost) {
+            return [false, 'GOLD_NOT_ENOUGH'];
+        } else {
+            result.gold -= goldCost;
+        }
+    }
+    // @ts-ignore
+    result.inventory[item] += 1;
+    const final = { ...user.guilds, [guildId]: result };
+    await container.users.updateOne({ userId: playerId }, { $set: { guilds: final } });
+    return [true, null];
 }
 
 export async function addGold(playerId: string, amount: number, guildId: string) {

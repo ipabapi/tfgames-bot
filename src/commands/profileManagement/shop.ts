@@ -90,7 +90,7 @@ export class Shop extends Subcommand {
             collector.on('collect', async (interaction) => {
                 const item = interaction.values[0];
                 // @ts-ignore
-                const [success, error] = await recieveItem(user, item, interaction.guild.id, initialShopInventory[item].cost, true);
+                const [success, error] = await recieveItem(user, item, interaction.guild.id, initialShopInventory[item].cost);
                 if (success) {
                     await interaction.reply(`You have purchased ${item}!`);
                     collector.stop()
