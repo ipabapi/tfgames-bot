@@ -7,14 +7,17 @@ export async function makeInv() {
 }
 
 export async function recieveItem(playerId: string, item: string, guildId: string, goldCost?: number) {
+    console.log("function called with gold cost of: " + goldCost)
     const user = (await container.users.findOne({ userId: playerId })) as unknown as Player;
     const result = user.guilds[guildId];
     if (!Object.keys(result.inventory).includes(item)) {
+        console.log('item not found!');
         return [false, 'ITEM_NOT_FOUND'];
     }
     if (typeof goldCost !== 'undefined') {
         // if the item is a shop transaction
         if (result.gold < goldCost) {
+            console.log('too poor');
             return [false, 'GOLD_NOT_ENOUGH'];
         } else {
             result.gold -= goldCost;
@@ -35,6 +38,7 @@ export async function addGold(playerId: string, amount: number, guildId: string)
     const guild = result.guilds[guildId];
     guild.gold += amount;
     const final = { ...result.guilds, [guildId]: guild };
+    console.log("uwu:",final[guildId].gold)
     await container.users.updateOne({ userId: playerId }, { $set: { guilds: final } });
     return true;
 }

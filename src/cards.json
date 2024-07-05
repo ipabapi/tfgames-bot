@@ -338,7 +338,7 @@
                 "NORMAL", "HARDCORE"
             ]
         },
-        "type": "ITEM",
+        "type": "GOLD",
         "rarity": "UNCOMMON"
     },
     {
@@ -361,7 +361,7 @@
                 "NORMAL", "HARDCORE"
             ]
         },
-        "type": "ITEM",
+        "type": "GOLD",
         "rarity": "UNCOMMON"
     },
     {
@@ -384,7 +384,7 @@
                 "NORMAL", "HARDCORE"
             ]
         },
-        "type": "ITEM",
+        "type": "GOLD",
         "rarity": "UNCOMMON"
     }
 ]
