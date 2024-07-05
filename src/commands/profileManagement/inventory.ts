@@ -28,13 +28,13 @@ export class InventoryCommand extends Command {
     public async inventory(interaction: Command.ChatInputCommandInteraction) {
         if (!interaction.guild) return interaction.reply('This command can only be used in a server!');
         const user = interaction.user.id;
-        let [success, inventory] = await showInventory(user, interaction.guild.id);
+        let [success, inventory, gold] = await showInventory(user, interaction.guild.id);
         console.log(success, inventory)
         if ( Object.keys(inventory).length === 0) {
             interaction.channel?.send('Inventory is empty, give me a moment to set you up in this server');
             console.log('sent response')
             await this.container.users.updateOne({ userId: user }, { $set: { guilds: { [interaction.guild.id]:  initialGuildInfo } } });
-            [success, inventory] = await showInventory(user, interaction.guild.id);
+            [success, inventory, gold] = await showInventory(user, interaction.guild.id);
         }   
         console.log(success, inventory)
         if (success) {
@@ -43,7 +43,7 @@ export class InventoryCommand extends Command {
                 {
                     title: `Inventory for ${interaction.user.username}`,
                     color: 0, // @ts-ignore
-                    description: Object.keys(inventory).map((key) => `${ItemNamesHuman[key]}: ${inventory[key]}`).join('\n'),
+                    description: Object.keys(inventory).map((key) => `${ItemNamesHuman[key]}: ${inventory[key]}`).join('\n') + '\n**Gold:** ' + gold,
                     footer: {
                         text: `Requested at ${new Date().toLocaleString()}`
                 }

@@ -46,7 +46,7 @@ export async function showInventory(playerId: string, guildId: string) {
         return [false, {}]
     }
     console.log(result.guilds[guildId].inventory)
-    return [true, result.guilds[guildId].inventory];
+    return [true, result.guilds[guildId].inventory, result.guilds[guildId].gold];
 }
 
 export async function useItem(playerId: string, item: string, guildId: string) {
