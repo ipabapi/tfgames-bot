@@ -33,11 +33,16 @@ export class InventoryManager {
         return true
     }   
 
+    async getInventory(player: Player, guildId: string) {
+        const newPlayer = await container.users.findOne({ userId: player.userId }) as unknown as Player
+        return newPlayer.guilds[guildId].inventory
+    }
+
     async addInventoryItem(player: Player, guildId: string, item: string) {
         if (!this.validateRequest(player, guildId, item)) {
             return false
         }
-        const inventory = player.guilds[guildId].inventory
+        const inventory = await this.getInventory(player, guildId)
         if (!Object.keys(inventory).includes(item)) {
             inventory[item] = 1
         } else {
@@ -52,7 +57,7 @@ export class InventoryManager {
         if (!this.validateRequest(player, guildId, item)) {
             return false
         }
-        const inventory = player.guilds[guildId].inventory
+        const inventory = await this.getInventory(player, guildId)
         if (!Object.keys(inventory).includes(item)) {
             return false
         }
@@ -74,7 +79,7 @@ export class InventoryManager {
         if (!this.validateRequest(player, guildId, item)) {
             return [false, 'ITEM_NOT_FOUND', game]
         }
-        const inventory = player.guilds[guildId].inventory
+        const inventory = await this.getInventory(player, guildId)
         if (!Object.keys(inventory).includes(item)) {
             return [false, 'ITEM_NOT_IN_INV', game]
         }

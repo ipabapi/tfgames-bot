@@ -30,9 +30,10 @@ export async function recieveItem(playerId: string, item: string, guildId: strin
 }
 
 export async function addGold(playerId: string, amount: number, guildId: string) {
-	const result = await container.users.findOne({ userId: playerId }) as unknown as Player;
+	let result = await container.users.findOne({ userId: playerId }) as unknown as Player;
     if (!Object.keys(result.guilds).includes(guildId)) {
-        return false;
+       await container.InventoryManager.initializeInventory(result, guildId);
+        result = await container.users.findOne({ userId: playerId }) as unknown as Player;
     }
     const guild = result.guilds[guildId];
     guild.gold += amount;
@@ -44,12 +45,11 @@ export async function addGold(playerId: string, amount: number, guildId: string)
 
 export async function showInventory(playerId: string, guildId: string) {
 	const result = await container.users.findOne({ userId: playerId }) as unknown as Player;
-    console.log(result.guilds)
     if (!Object.keys(result.guilds).includes(guildId)) {
-        return [false, {}]
+        await container.InventoryManager.initializeInventory(result, guildId);
+        return [{}, 0];
     }
-    console.log(result.guilds[guildId].inventory)
-    return [true, result.guilds[guildId].inventory, result.guilds[guildId].gold];
+    return [result.guilds[guildId].inventory, result.guilds[guildId].gold];
 }
 
 export async function useItem(playerId: string, item: string, guildId: string) {

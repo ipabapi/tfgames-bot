@@ -1,7 +1,6 @@
 import { Command } from "@sapphire/framework";
 import { showInventory } from "../../BusinessLogic/shopBusinessLogic";
 import { MessageBuilder } from "@sapphire/discord.js-utilities";
-import { initialGuildInfo } from "../../lib/initials";
 import { items } from "../../lib/items";
 
 export class InventoryCommand extends Command {
@@ -28,16 +27,8 @@ export class InventoryCommand extends Command {
     public async inventory(interaction: Command.ChatInputCommandInteraction) {
         if (!interaction.guild) return interaction.reply('This command can only be used in a server!');
         const user = interaction.user.id;
-        let [success, inventory, gold] = await showInventory(user, interaction.guild.id);
-        console.log(success, inventory)
-        if ( Object.keys(inventory).length === 0) {
-            interaction.channel?.send('Inventory is empty, give me a moment to set you up in this server');
-            console.log('sent response')
-            await this.container.users.updateOne({ userId: user }, { $set: { guilds: { [interaction.guild.id]:  initialGuildInfo } } });
-            [success, inventory, gold] = await showInventory(user, interaction.guild.id);
-        }   
-        console.log(success, inventory)
-        if (success) {
+        const guildId = interaction.guild.id;
+        const [inventory, gold] = await showInventory(user, guildId)
             return interaction.reply(new MessageBuilder()
             .setEmbeds([
                 {
@@ -49,9 +40,5 @@ export class InventoryCommand extends Command {
                 }
             }
             ]))
-        
-        } else {
-            return interaction.reply('Inventory not found');
-    }
 }
 }
