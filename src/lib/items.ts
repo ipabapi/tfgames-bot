@@ -67,4 +67,4 @@ export const items = {
         valueName: 'collarKey',
         types: ['collarKey']
     }
-}
+} as { [key: string]: { name: string, description: string, price: number, valueName: string, types: string[] } };

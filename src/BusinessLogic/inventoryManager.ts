@@ -126,7 +126,7 @@ export class InventoryManager {
             game.state.extraTurn = true
             return [true, 'EXTRA_TURN_USED', game]
         }
-        return [false, 'EXTRA_TURN_USED', game]
+        return [false, 'EXTRA_TURN_ACTIVE', game]
     }
     // TODO: Implement cleanse
     async cleanseType(_player: Player, game: Game, _target: string) {
