@@ -585,6 +585,12 @@ export class GameCommand extends Subcommand {
 						if (!characterID) {
 							return i.reply('Invalid interaction!');
 						}
+						if (!characterID.players[i.user.id]) {
+							return i.reply('Invalid interaction!');
+						}
+						if (!Object.keys(characterID.players[i.user.id]).includes('character')) {
+							return i.reply('Invalid interaction!');
+						}
 						characterID = characterID.players[i.user.id].character;
 
 						await container.game.updateOne(

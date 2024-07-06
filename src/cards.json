@@ -161,7 +161,7 @@
                 "item",
                 "general"
             ],
-            "action": "item",
+            "action": "0004",
             "singleTarget": true,
             "targetSelf": true,
             "multiTarget": false,
@@ -235,7 +235,7 @@
                 "general",
                 "basic"
             ],
-            "action": "item",
+            "action": "0001",
             "singleTarget": true,
             "targetSelf": true,
             "multiTarget": false,
@@ -259,7 +259,7 @@
                 "item",
                 "general"
             ],
-            "action": "item",
+            "action": "0002",
             "singleTarget": true,
             "targetSelf": true,
             "multiTarget": false,
@@ -282,7 +282,7 @@
                 "item",
                 "general"
             ],
-            "action": "item",
+            "action": "0002",
             "singleTarget": true,
             "targetSelf": true,
             "multiTarget": false,
@@ -306,7 +306,7 @@
                 "item",
                 "general"
             ],
-            "action": "item",
+            "action": "0005",
             "singleTarget": true,
             "targetSelf": true,
             "multiTarget": false,

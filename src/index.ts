@@ -7,6 +7,7 @@ import '@sapphire/plugin-hmr/register';
 import {DeckBusinessLogic} from "./BusinessLogic/deckBL";
 import { basicCommandUtils} from "./BusinessLogic/basicCommandUtils";
 import { GameLogic } from './BusinessLogic/turnLogic';
+import { InventoryManager } from './BusinessLogic/inventoryManager';
 
 // Declare items to be on the container
 
@@ -24,6 +25,7 @@ declare module '@sapphire/framework' {
 		guilds: import('mongodb').Collection;
 		characters: import('mongodb').Collection;
 		gl: GameLogic;
+		InventoryManager: InventoryManager;
 	}
 }
 
@@ -64,6 +66,7 @@ const main = async () => {
 			container.guilds = container.db.collection('guilds');
 			container.characters = container.db.collection('characters');
 			container.utils = basicCommandUtils;
+			container.InventoryManager = new InventoryManager();
 			client.logger.info('Connected to MongoDB');
 		} catch (error) {
 			client.logger.fatal(error);

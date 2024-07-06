@@ -60,7 +60,9 @@ export interface PlayerGuildInfo {
     // This is per guild, so the player can have different settings for different guilds
     games: string[]; // the games the player is in, if any, will be a list of game id or else this will take forever to load
     gold: number; // the amount of gold the player has
-    inventory: Inventory; // the items the player has
+    inventory: {
+        [key: string]: number; // k: item id, v: amount of item
+    }
     blocked: string[]; // the players the player has blocked, if the blocked player tries to join a game the player is in, the game will refuse
     permaCollared: boolean; // if the player is permanently collared, this will be a high price item for the shop
     collarOwner: string | null; // the player that collared the player, if any
@@ -90,6 +92,7 @@ export interface Game {
     players: { [key: string]: {
         character: string; // the character the player is using
         deck: string; // the deck the player is using
+        shieldActive: boolean; // if the player has a shield active
     } }; // the players in the game
     channel: string; // the discord channel id
     inThread: boolean; // if the game is in a thread
@@ -98,21 +101,15 @@ export interface Game {
     gameMode: GameMode; // the mode of the game
 }
 
-export interface Inventory {
-    shield: number;
-    reverse: number;
-    extraTurn: number;
-    cleanse: number;
-    steal: number;
-    tempLock: number;
-    tempCollar: number;
-    permaCollar: number;
-    collarKey: number;
-}
-
 export interface GameState {
     currentPlayer: Player | null; // the player whose turn it is
     turnOrder: Player[]; // the order of the players
+    extraTurnUsed: boolean; // if an extra turn has been used
+    extraTurn: boolean; // if we are in an extra turn
+    stealsActive: {
+        [key: string]: string; // k: target, v: stealer
+        // when the target's turn is up, the stealer will have a turn instead, without turnOrder being disrupted
+    }
     deck: string[]; // the deck of cards
     discard: string[]; // the discard pile
     lastCard: Card | null; // the last card played
@@ -194,16 +191,4 @@ export enum CardRarity {
     RARE = 'RARE',
     EPIC = 'EPIC',
     LEGENDARY = 'LEGENDARY'
-}
-
-export enum ItemNamesHuman {
-    shield = 'Shield',
-    reverse = 'Reverse',
-    extraTurn = 'Extra Turn',
-    cleanse = 'Cleanse',
-    steal = 'Steal',
-    tempLock = 'Temporary Lock',
-    tempCollar = 'Temporary Collar',
-    permaCollar = 'Permanent Collar',
-    collarKey = 'Collar Key'
 }

@@ -79,7 +79,7 @@ export class DrawCommand extends Command {
     private async parseCard(card: Card, userId: string, guildId: string){
         switch (card.type){
             case CardType.ITEM:
-                this.addItemToInventory(card.stringID, userId, guildId)
+                this.addItemToInventory(card.effect.action, userId, guildId)
                 break
             case CardType.GOLD:
                 this.addGold(parseInt(card.effect.action),userId, guildId)
@@ -87,7 +87,7 @@ export class DrawCommand extends Command {
     }
     
     private async addItemToInventory(stringId: string, userId: string, guildId: string){
-        recieveItem(userId, stringId, guildId)
+        recieveItem(userId, stringId, guildId, false)
     }
     private async addGold(amount: number, userId: string, guildId: string){
         addGold(userId,amount, guildId)

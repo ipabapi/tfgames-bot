@@ -2,7 +2,7 @@ import { Command } from "@sapphire/framework";
 import { showInventory } from "../../BusinessLogic/shopBusinessLogic";
 import { MessageBuilder } from "@sapphire/discord.js-utilities";
 import { initialGuildInfo } from "../../lib/initials";
-import { ItemNamesHuman } from "../../lib/bot.types";
+import { items } from "../../lib/items";
 
 export class InventoryCommand extends Command {
     public constructor(context: Command.LoaderContext) {
@@ -43,7 +43,7 @@ export class InventoryCommand extends Command {
                 {
                     title: `Inventory for ${interaction.user.username}`,
                     color: 0, // @ts-ignore
-                    description: Object.keys(inventory).map((key) => `${ItemNamesHuman[key]}: ${inventory[key]}`).join('\n') + '\n**Gold:** ' + gold,
+                    description: Object.keys(inventory).map((key) => `${items[key].name}: ${inventory[key]}`).join('\n') + '\n**Gold:** ' + gold,
                     footer: {
                         text: `Requested at ${new Date().toLocaleString()}`
                 }
