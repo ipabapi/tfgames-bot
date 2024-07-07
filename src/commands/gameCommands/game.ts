@@ -125,7 +125,7 @@ export class GameCommand extends Subcommand {
 			if (result) {
 				// @ts-ignore
 				this.choosePlayerAndDeck({ interaction, gameInit: game, userDecks });
-				this.container.gl.addPlayer(game.state, await container.users.findOne({ userId: interaction.user.id }) as unknown as Player || {});
+				this.container.gl.addPlayer(game.state, await container.users.findOne({ userId: interaction.user.id }) as unknown as Player || {}, interaction.channel?.id || '');
 				return interaction.reply('Sent you a DM to choose your character and deck!');
 			} else {
 				return interaction.reply('The vote to join the game failed!');

@@ -63,7 +63,8 @@ export class GameLogic {
             return game;
         }
 		// Check if there is anything in active steals
-		if (Object.keys(game.stealsActive).length) {
+		console.log(game.stealsActive)
+		if (Object.keys(game.stealsActive).length >	0) {
 			// If there is, check if the next player is the target of a steal
 			if (game.stealsActive[game.turnOrder[0].userId]) {
 				// If they are, advance the turn to the player who stole from them
@@ -116,9 +117,10 @@ export class GameLogic {
 	 * @param user The user to add
 	 * @returns The updated game state
 	 */
-	public async addPlayer(game: GameState, user: Player) {
+	public async addPlayer(game: GameState, user: Player, channel: string) {
 		// insert player before last index of turn order
 		game.turnOrder.splice(game.turnOrder.length - 1, 0, user);
+		await container.game.updateOne({ channel: channel }, { $set: { state: game } });
 		return game;
 	}
 

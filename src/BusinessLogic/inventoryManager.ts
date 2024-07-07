@@ -22,8 +22,7 @@ export class InventoryManager {
         // If the item does not exist, return false
         // If the player does not have an inventory, do initializeInventory and return true
         // otherwise return true
-        const inventory = player.guilds[guildId].inventory
-        if (Object.keys(inventory).length === 0) {
+        if (!Object.keys(player.guilds).includes(guildId)) {
             await this.initializeInventory(player, guildId)
             return true
         }
@@ -42,7 +41,14 @@ export class InventoryManager {
         if (!this.validateRequest(player, guildId, item)) {
             return false
         }
-        const inventory = await this.getInventory(player, guildId)
+        let inventory;
+        try {
+         inventory = await this.getInventory(player, guildId)
+        } catch (e) {
+            await this.initializeInventory(player, guildId)
+            inventory = await this.getInventory(player, guildId)
+        }
+
         if (!Object.keys(inventory).includes(item)) {
             inventory[item] = 1
         } else {
@@ -72,14 +78,19 @@ export class InventoryManager {
     }
     
     async initializeInventory(player: Player, guildId: string) {
-        await container.users.updateOne({ userId: player.userId}, { $set: { guilds: { [guildId]:  initialGuildInfo } } });
+        const newPlayer = await container.users.findOne({ userId: player.userId }) as unknown as Player
+        const guilds = newPlayer.guilds
+        guilds[guildId] = initialGuildInfo
+        await container.users.updateOne({ userId: player.userId}, { $set:  { guilds } })
     }
 
-    async useItem(player: Player, guildId: string, item: string, game: Game) {
+    async useItem(player: Player, guildId: string, item: string, game: Game, target?: string) {
         if (!this.validateRequest(player, guildId, item)) {
             return [false, 'ITEM_NOT_FOUND', game]
         }
+        console.log(player, guildId, item)
         const inventory = await this.getInventory(player, guildId)
+        console.log(inventory)
         if (!Object.keys(inventory).includes(item)) {
             return [false, 'ITEM_NOT_IN_INV', game]
         }
@@ -87,8 +98,13 @@ export class InventoryManager {
             return [false, 'NOT_ENOUGH_ITEM', game]
         }
         
-        // @ts-ignore
-        const result = this.functions[items[item].type](player, guildId, game)
+        // @ts-ignore TODO: Add multiple types of items to execute in sequence
+        const functionType = this.functions[items[item].types[0]]
+        console.log(functionType, item, items[item])
+        if (!functionType) {
+            return [false, 'TYPE_ERROR', game]
+        }
+        const result = functionType(player, game, target)
         if (result === undefined) {
             return [false, 'TYPE_ERROR', game]
         }
@@ -114,6 +130,7 @@ export class InventoryManager {
     }
 
     async stealType(player: Player, game: Game, target: string) {
+        console.log(game.state)
         if (!game.state.stealsActive[target]) {
             game.state.stealsActive[target] = player.userId
             return [true, 'STEAL_USED', game]

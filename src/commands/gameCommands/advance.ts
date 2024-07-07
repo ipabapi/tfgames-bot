@@ -28,13 +28,12 @@ export class AdvanceCommand extends Command {
         if (!newGameState.currentPlayer) return interaction.reply('The game has an issue, please inform the developers.');
         await this.container.game.updateOne({channel: interaction.channel?.id}, {$set: {state: newGameState}});
         console.log(newGameState.currentPlayer)
-        const nextPlayer = interaction.guild.members.cache.get(newGameState.currentPlayer.userId);
-        console.log(nextPlayer)
+        const nextPlayer = newGameState.currentPlayer.userId;
         return interaction.reply(new MessageBuilder()
-            .setContent(`<@${nextPlayer?.id}>`)
+            .setContent(`<@${nextPlayer}>`)
             .setEmbeds([{
                 title: `${interaction.user.displayName} has advanced the game to the next turn`,
-                description: `It is now ${nextPlayer?.displayName}'s turn`,
+                description: `It is now <@${nextPlayer}>'s turn`,
                 footer: {
                     text: `Updated at: <t:${Math.floor(Date.now() / 1000)}:f>`
                 }

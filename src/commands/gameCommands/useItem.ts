@@ -22,6 +22,11 @@ export class UseItemCommand extends Command {
                     .setDescription('The item you want to use!')
                     .setRequired(true)
                 )
+            .addUserOption((option) =>
+                option
+                    .setName('user')
+                    .setDescription('The user you want to use the item on!')
+                )
         );
     }
 
@@ -49,11 +54,13 @@ export class UseItemCommand extends Command {
         // check if it is the user's turn
         if (game.state.currentPlayer?.userId !== interaction.user.id) return interaction.reply('It is not your turn!');
         // check if it is the right game state
-        if ([GameStatus.TURNSTART, GameStatus.WAITING, GameStatus.TURNEND].includes(game.state.status)) return interaction.reply('You can only use items during your turn!');
+        if (![GameStatus.TURNSTART, GameStatus.WAITING, GameStatus.TURNEND].includes(game.state.status)) return interaction.reply('You can only use items during your turn!');
         // search for item in items:
         const itemID = Object.keys(items).find((item) => items[item].name.toLowerCase().replaceAll(' ', '') === interaction.options.getString('item')?.toLowerCase().replaceAll(' ', '')) || '';
-        const player = await this.container.users.findOne({id: interaction.user.id}) as unknown as Player;
-        const [successful, code, _newGame] = await this.container.InventoryManager.useItem(player, interaction.guild.id, itemID, game);
+        const player = await this.container.users.findOne({userId: interaction.user.id}) as unknown as Player;
+        console.log(itemID, player)
+        const target = interaction.options.getUser('user')?.id || interaction.user.id;
+        const [successful, code, _newGame] = await this.container.InventoryManager.useItem(player, interaction.guild.id, itemID, game, target);
         if (!successful) return interaction.reply(this.errorMessages[code]);
         return interaction.reply(`${items[itemID].name} used successfully!`);        
     }

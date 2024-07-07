@@ -84,26 +84,25 @@ export class Shop extends Subcommand {
         async (msg: InteractionResponse) => {
             const collector = msg.createMessageComponentCollector({
                 componentType: ComponentType.StringSelect,
-                filter: (interaction) => interaction.user.id === user,
+                filter: (int) => int.user.id === user,
                 time: 300000
             });
-            collector.on('collect', async (interaction) => {
-                const item = interaction.values[0];
+            collector.on('collect', async (i) => {
+                const item = i.values[0];
                 // @ts-ignore
-                const [success, error] = await recieveItem(user, item, interaction.guild.id, true);
+                const [success, error] = await recieveItem(user, item, i.guild.id, true);
                 if (success) {
-                    await interaction.reply(`You have purchased ${item}!`);
+                    await i.reply(`You have purchased ${item}!`);
                     collector.stop()
+                    return
                 } else {
                     console.log(error)
-                    await interaction.reply(`${error == "GOLD_NOT_ENOUGH" ? "You don't have enough gold!" : "Item not found!"}`);
+                    await i.reply(`${error == "GOLD_NOT_ENOUGH" ? "You don't have enough gold!" : "Item not found!"}`);
                     collector.stop()
+                    return
                 }
             });
-            collector.on('end', async (_collected, reason) => {
-                    if (reason === 'time') {
-                        await interaction.reply('You took too long to respond!');
-                    }
+            collector.on('end', async () => {
                 msg.delete();
             });
         }
