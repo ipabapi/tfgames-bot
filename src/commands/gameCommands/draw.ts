@@ -29,7 +29,7 @@ export class DrawCommand extends Command {
     }
 
     public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
-        console.log('draw')
+        console.log('draw', interaction.user.displayName)
         if (!interaction.guild) return interaction.reply('This command can only be used in a server!');
         // Get game
         // @ts-ignore
