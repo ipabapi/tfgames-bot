@@ -9,9 +9,8 @@ export async function makeInv() {
 
 export async function recieveItem(playerId: string, item: string, guildId: string, shop: boolean) {
     const user = (await container.users.findOne({ userId: playerId })) as unknown as Player;
-    if (!Object.keys(user.guilds).includes(guildId) && shop) {
-        container.InventoryManager.initializeInventory(user, guildId);
-        return [false, 'GOLD_NOT_ENOUGH'];
+    if (!Object.keys(user.guilds).includes(guildId)) {
+        await container.InventoryManager.initializeInventory(user, guildId);
     }
     // If goldCost is provided, check if the user has enough gold
     if (shop) {
@@ -39,6 +38,19 @@ export async function addGold(playerId: string, amount: number, guildId: string)
     guild.gold += amount;
     const final = { ...result.guilds, [guildId]: guild };
     console.log("uwu:",final[guildId].gold)
+    await container.users.updateOne({ userId: playerId }, { $set: { guilds: final } });
+    return true;
+}
+
+export async function removeGold(playerId: string, amount: number, guildId: string) {
+    let result = await container.users.findOne({ userId: playerId }) as unknown as Player;
+    if (!Object.keys(result.guilds).includes(guildId)) {
+        await container.InventoryManager.initializeInventory(result, guildId);
+        result = await container.users.findOne({ userId: playerId }) as unknown as Player;
+    }
+    const guild = result.guilds[guildId];
+    guild.gold -= Math.abs(amount);
+    const final = { ...result.guilds, [guildId]: guild };
     await container.users.updateOne({ userId: playerId }, { $set: { guilds: final } });
     return true;
 }

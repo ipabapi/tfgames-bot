@@ -28,6 +28,8 @@ export class DrawCommand extends Command {
         );
     }
 
+    
+
     public override async chatInputRun(interaction: Command.ChatInputCommandInteraction) {
         console.log('draw', interaction.user.displayName)
         if (!interaction.guild) return interaction.reply('This command can only be used in a server!');
@@ -35,6 +37,7 @@ export class DrawCommand extends Command {
         // @ts-ignore
         const game = await this.container.game.findOne({channel: interaction.channel?.id});
         if (!game) return interaction.reply('No game found in this channel!');
+        if (game.state.status == GameStatus.WAITINGFORPLAYERS) return interaction.reply('Game has not started yet!');
         // @ts-ignore
         if (!Object.keys(game.players).includes(interaction.user.id)) return interaction.reply('You are not in the game!');
         //@ts-ignore
@@ -59,7 +62,7 @@ export class DrawCommand extends Command {
         return interaction.reply(new MessageBuilder()
         .setEmbeds([{
             title: `${card.name} Drawn!`,
-            description: `You drew a ${card.rarity} card, called ${card.name}!`,
+            description: `You drew a ${card.rarity} card, called ${card.name}!${card.type == CardType.ITEM ? ' It has been added to your inventory!' : ''}`,
             image: {
                 url: card.image || '',
             },
@@ -69,6 +72,9 @@ export class DrawCommand extends Command {
                  {name: 'Single Target?', value: card.effect.singleTarget ? 'Yes' : 'No'},
             ],
             color: rarityColors[card.rarity],
+            footer: {
+                text: `Drawn by ${interaction.user.username}`
+            }
 
         }]));
         
@@ -79,17 +85,17 @@ export class DrawCommand extends Command {
     private async parseCard(card: Card, userId: string, guildId: string){
         switch (card.type){
             case CardType.ITEM:
-                this.addItemToInventory(card.effect.action, userId, guildId)
+                await this.addItemToInventory(card.effect.action, userId, guildId)
                 break
             case CardType.GOLD:
-                this.addGold(parseInt(card.effect.action),userId, guildId)
+                await this.addGold(parseInt(card.effect.action),userId, guildId)
         }
     }
     
     private async addItemToInventory(stringId: string, userId: string, guildId: string){
-        recieveItem(userId, stringId, guildId, false)
+       await recieveItem(userId, stringId, guildId, false)
     }
     private async addGold(amount: number, userId: string, guildId: string){
-        addGold(userId,amount, guildId)
+        await addGold(userId,amount, guildId)
     }
 }

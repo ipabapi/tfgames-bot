@@ -297,11 +297,11 @@ export class GameCommand extends Subcommand {
 							if (votes >= players.length) {
 								if (endVotes > dontEndVotes) {
 									await container.game.deleteOne({ channel: i.channel?.id });
-									m.channel.send('The game has ended!');
+									m.edit('The game has ended!');
 									collector.stop();
 									return;
 								} else {
-									m.channel.send('The game has not ended!');
+									m.edit('The game has not ended!');
 									collector.stop();
 									return;
 								}
@@ -319,9 +319,9 @@ export class GameCommand extends Subcommand {
 						// Check the votes
 						if (endVotes > dontEndVotes) {
 							await container.game.deleteOne({ channel: interaction.channel?.id });
-							return m.channel.send('The game has ended!');
+							return m.edit('The game has ended!');
 						} else {
-							return m.channel.send('The game has not ended!');
+							return m.edit('The game has not ended!');
 						}
 					}
 					return;

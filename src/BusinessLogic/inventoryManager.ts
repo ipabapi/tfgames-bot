@@ -37,7 +37,7 @@ export class InventoryManager {
         return newPlayer.guilds[guildId].inventory
     }
 
-    async addInventoryItem(player: Player, guildId: string, item: string) {
+    async addInventoryItem(player: Player, guildId: string, item: string, amount: number = 1) {
         if (!this.validateRequest(player, guildId, item)) {
             return false
         }
@@ -50,16 +50,16 @@ export class InventoryManager {
         }
 
         if (!Object.keys(inventory).includes(item)) {
-            inventory[item] = 1
+            inventory[item] = amount
         } else {
-            inventory[item] += 1
+            inventory[item] += amount
         }
         const final = { ...player.guilds, [guildId]: { ...player.guilds[guildId], inventory } }
         await container.users.updateOne({ userId: player.userId }, { $set: { guilds: final } })
         return true
     }
 
-    async removeInventoryItem(player: Player, guildId: string, item: string) {
+    async removeInventoryItem(player: Player, guildId: string, item: string, amount: number = 1) {
         if (!this.validateRequest(player, guildId, item)) {
             return false
         }
@@ -70,7 +70,7 @@ export class InventoryManager {
         if (inventory[item] === 1) {
             delete inventory[item]
         } else {
-            inventory[item] -= 1
+            inventory[item] -= amount;
         }
         const final = { ...player.guilds, [guildId]: { ...player.guilds[guildId], inventory } }
         await container.users.updateOne({ userId: player.userId }, { $set: { guilds: final } })
