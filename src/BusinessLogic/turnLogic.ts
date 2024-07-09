@@ -1,6 +1,10 @@
 import { container } from '@sapphire/framework';
-import { GameState, Game, GameStatus, Player } from '../lib/bot.types';
+import { GameState, Game, GameStatus, Player, Card, CardType } from '../lib/bot.types';
 import { ObjectId } from 'mongodb';
+import { Subcommand } from '@sapphire/plugin-subcommands';
+import { MessageComponentInteraction, User, APIEmbed, ComponentType } from 'discord.js';
+import { optionalProps} from '../commands/gameCommands/apply';
+import { MessageBuilder } from '@sapphire/discord.js-utilities';
 
 export class GameLogic {
 	constructor() {}
@@ -66,7 +70,6 @@ export class GameLogic {
             return game;
         }
 		// Check if there is anything in active steals
-		console.log(game.stealsActive)
 		if (Object.keys(game.stealsActive).length >	0 && game.stealsActive[game.turnOrder[0].userId]) {
 				// If they are, advance the turn to the player who stole from them
 				const nextPlayer = game.stealsActive[game.turnOrder[0].userId];
@@ -146,9 +149,7 @@ export class GameLogic {
 			return [game, false, 'Player not found, are you sure they are in the game?'];
 		}
 		// Apply the effect
-		console.log(game, player, game.players[player].character, effect, type)
 		const character = await container.characters.findOne({ _id: new ObjectId(game.players[player].character) });
-		console.log(character, !character)
 		if (!character) {
 			return [game, false, 'Character not found, how did this happen?'];
 		}
@@ -283,7 +284,7 @@ export class GameLogic {
 			return [game, false, 'Character not found, how did this happen?'];
 		}
 		const success = await container.characters.updateOne(
-			{ id: game.players[player].character },
+			{ _id: new ObjectId(game.players[player].character) },
 			{
 				$set: {
 					bodySwapped: true,
@@ -292,7 +293,7 @@ export class GameLogic {
 			}
 		);
 		const success2 = await container.characters.updateOne(
-			{ id: game.players[player2].character },
+			{ _id: new ObjectId(game.players[player2].character) },
 			{
 				$set: {
 					bodySwapped: true,
@@ -320,4 +321,222 @@ export class GameLogic {
 	 *  - Mind Control
 	 *
 	 */
+
+	public async verifyRequest(interaction: Subcommand.ChatInputCommandInteraction | MessageComponentInteraction, optionals?: optionalProps) {
+		console.log(optionals)
+        if (!interaction.replied) {
+            await interaction.deferReply({ ephemeral: true })
+        }
+        const target = interaction instanceof MessageComponentInteraction ? optionals?.target : interaction.options.getUser('target')        
+        const player = await container.users.findOne({ userId: interaction.user.id }) as unknown as Player
+        if (!player) {
+            await interaction.reply({ content: 'You have not accepted our Privacy Policy and Terms of Service yet. Please use `/setup`.', ephemeral: true })
+            return [false, null, null]
+        }
+        const game = await container.game.findOne({ channel: interaction.channel?.id }) as unknown as Game
+        if (!game) {
+            await interaction.editReply({ content: 'This channel does not have a game associated with it'})
+            return [false, null, null]
+        }
+        // check if the player is in the game
+        if (!Object.keys(game.players).includes(interaction.user.id)) {
+            await interaction.editReply({ content: 'You are not in the game associated with this channel'})
+            return [false, null, null]
+        }
+        if (game.state.status !== GameStatus.WAITING) {
+            await interaction.editReply({ content: 'We are not in a state to apply effects to a player'})
+            return [false, null, null]
+        }
+        if (game.state.failClaim != null) {
+            if (game.state.currentPlayer?.userId == interaction.user.id) {
+                await interaction.editReply({ content: 'You can\'t apply any effects while under a fail!'})
+                return [false, null, null]
+            }
+            if (game.state.failClaim != interaction.user.id) {
+                await interaction.editReply({ content: 'You are not the user who claimed this fail!'})
+                return [false, null, null]
+            }
+        if (game.state.currentPlayer?.userId != target?.id) {
+            if (game.state.currentPlayer?.userId != target?.id) {
+                await interaction.editReply({ content: 'You are applying to a failed user, please select them.'})
+                return [false, null, null]
+            }
+        }
+        } else if (game.state.currentPlayer?.userId != interaction.user.id && !optionals) {
+            await interaction.editReply({ content: 'It is not your turn'})
+            return [false, null, null]
+        }
+        return [true, player, game]
+    }   
+
+    public async checkEffect(card: Card, type: string) {
+        if (card.effect.tags.includes('fail') || card.effect.tags.includes('luck')) {
+            return true
+        }
+        if (card.type != CardType.TF) {
+            return false
+        }
+        if (card.effect.tags.includes(type)) {
+            return true
+        }
+        return false
+    }
+
+	// @ts-ignore
+    public async waitForShieldOrReverse(game: Game, player: User, interaction: Subcommand.ChatInputCommandInteraction | MessageComponentInteraction, message: APIEmbed, type: string, effect: string, target2?: User) {
+        // this will run after the player has applied the effect
+        // check if the player has a shield active, and if target2 is not null, check if target2 has a shield active
+        // @ts-ignore
+        let applied = false;
+        if (Object.keys(game.players[interaction.user.id]).includes('shieldActive') && game.players[interaction.user.id].shieldActive) {
+            const newPlayers = game.players
+            newPlayers[player.id].shieldActive = false
+            await container.game.updateOne({ channel: interaction.channel?.id }, { $set: { 
+                players: newPlayers
+            } })
+            await interaction.reply({ content: `<@${player.id}> has a shield active, the effect has been blocked as the shield crumbles away.`, ephemeral: true })
+            return false
+        }
+        if (target2 && Object.keys(game.players[target2.id]).includes('shieldActive') && game.players[target2.id].shieldActive) {
+            const newPlayers = game.players
+            newPlayers[player.id].shieldActive = false
+            await container.game.updateOne({ channel: interaction.channel?.id }, { $set: { 
+                players: newPlayers
+            } })
+            await interaction.reply({ content: `<@${target2.id}> has a shield active, the effect has been blocked as the shield crumbles away.`, ephemeral: true })
+            return false
+        }
+        // send the message to the channel, add the components to use the shield or reverse or do nothing
+        return await interaction.channel?.send(new MessageBuilder().setEmbeds([message]).setComponents([
+            {
+                type: 1,
+                components: [
+                    {
+                        type: 2,
+                        style: 1,
+                        customId: 'shield',
+                        label: 'Shield',
+                        emoji: { name: '🛡️' }
+                    },
+                    {
+                        type: 2,
+                        style: 1,
+                        customId: 'reverse',
+                        label: 'Reverse',
+                        emoji: { name: '🔁' }
+                    },
+                    {
+                        type: 2,
+                        style: 1,
+                        customId: 'nothing',
+                        label: 'Nothing',
+                        emoji: { name: '❌' }
+                    },
+                    {
+                        type: 2,
+                        style: 1,
+                        customId: 'Veto',
+                        label: 'Veto',
+                        emoji: { name: '🚫' }
+                    }
+                ]
+            }
+        ])).then(async (msg) => {
+            return new Promise(async(resolve, _reject) => {
+                const filter = (i: any) => i.user.id === player.id || (target2 && i.user.id === target2.id) || false;
+            const collector = msg.channel?.createMessageComponentCollector({ filter, time: 60000, componentType: ComponentType.Button })
+            let typeEffect = 0 // 0 = nothing, 1 = shield, 2 = reverse
+            let votes = 0;
+            collector.on('collect', async (i) => {
+                let result;
+                if (!Object.keys(game.players).includes(i.user.id)) {
+                    return await i.reply({ content: 'You are not in the game associated with this channel', ephemeral: true })
+                }
+                const user = await container.users.findOne({ userId: i.user.id }) as unknown as Player
+                if (i.customId === 'shield') {
+                    // remove shield from inventory
+                    result = await container.InventoryManager.removeInventoryItem(user, interaction.guild?.id || '', '0001') //TODO: change logic
+                    if (!result) {
+                        await i.reply({ content: 'You do not have a shield to use', ephemeral: true })
+                        return
+                    }
+                    await i.reply({content: `You used a shield, you have ${user.guilds[interaction.guild?.id || ''].inventory['0001'] - 1} shields left`, ephemeral: true}) //TODO: change logic
+                    typeEffect = 1
+                    collector.stop()
+                    return
+                } else if (i.customId === 'reverse') {
+                    // remove reverse from inventory
+                    result = await container.InventoryManager.removeInventoryItem(user, interaction.guild?.id || '', '0002') //TODO: change logic
+
+                    if (!result) {
+                        await i.reply({ content: 'You do not have a reverse to use', ephemeral: true })
+                        return
+                    }
+                    // await i.reply({content: `You used a reverse, you have ${user.guilds[interaction.guild?.id || ''].inventory['0002'] - 1} reverses left`, ephemeral: true}) //TODO: change logic
+                    typeEffect = 2
+                    collector.stop()
+                    const newOpt = {
+                        user: user,
+                        target: player,
+                        target2: target2,
+                        effect: effect,
+                        verify: container.gl.verifyRequest,
+                        check: container.gl.checkEffect,
+                        waitForShieldOrReverse: container.gl.waitForShieldOrReverse
+                    }
+					// call the correct type from the Apply class
+                    // @ts-ignore 
+                    const reverseResult = container.effectTypes[type]
+				
+                    const reversedResult = await reverseResult(i, newOpt)
+					if (reversedResult) {
+						await interaction.channel?.send({ content: 'The effect has been reversed.'})
+					}
+                    return
+                } else if (i.customId === 'nothing') {
+                    applied = true
+                    await i.reply({ content: 'You have chosen to do nothing', ephemeral: true })
+                    collector.stop()
+                    return
+                } else if (i.customId === 'Veto') {
+                    votes++
+                    await i.reply({ content: 'You have chosen to veto the effect', ephemeral: true })
+                    if (votes >= Object.keys(game.players).length/2) {
+                        await interaction.channel?.send('The players have chosen to veto the effect, it has not been applied.')
+                        collector.stop()
+                        return
+                    }
+                    return
+                }
+                return
+
+            })
+            collector.on('end', async (_collected, reason) => {
+                if (reason === 'time') {
+                    applied = true
+                    await interaction.channel?.send('The player did not respond in time, the effect has been applied.')
+                }
+                if (typeEffect != 0) { 
+                    
+                    if (typeEffect === 1) {
+                        // shield
+						msg.edit({components: []})
+                        await interaction.channel?.send({ content: `<@${player.id}> has used a shield to block the effect.`})
+                        return
+                    } else if (typeEffect === 2) {
+                        // reverse
+						msg.edit({components: []})
+                        await interaction.channel?.send({ content: `<@${player.id}> has used a reverse to reverse the effect.`})
+                        return
+                    }
+                }
+                msg.delete()
+                resolve(applied)
+            })
+        })
+        }).then((result) => {
+            return result
+        })
+        
+    }
 }

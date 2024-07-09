@@ -128,7 +128,7 @@ export class InventoryManager {
     // TODO: Implement reverse
 
     async reverseType(_player: Player, game: Game, _target: string) {
-        return [true, 'REVERSE_USED', game]
+        return [false, 'UNABLE', game]
     }
 
     async stealType(player: Player, game: Game, target: string) {

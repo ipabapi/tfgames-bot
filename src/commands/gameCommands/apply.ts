@@ -1,7 +1,7 @@
 import { Subcommand } from '@sapphire/plugin-subcommands';
 import { container } from '@sapphire/framework';
-import { Player, Game, GameStatus, CardType, Card } from '../../lib/bot.types';
-import { MessageBuilder } from '@sapphire/discord.js-utilities';
+import {  MessageComponentInteraction, User} from 'discord.js';
+
 
 // apply
 // mentalEffect
@@ -10,6 +10,16 @@ import { MessageBuilder } from '@sapphire/discord.js-utilities';
 // avatarChange
 // descriptionChange
 // bodySwap
+
+export type optionalProps = {
+    user: User,
+    target: User,
+    target2?: User,
+    effect: string,
+    verify: any,
+    check: any,
+    waitForShieldOrReverse: any
+}
 export class Apply extends Subcommand {
 	constructor(context: Subcommand.LoaderContext, options: Subcommand.Options) {
 		super(context, {
@@ -49,6 +59,14 @@ export class Apply extends Subcommand {
 				}
 			]
 		});
+        this.container.effectTypes = {
+        'mental': this.mentaleffect,
+        'physical': this.physicaleffect,
+        'name': this.namechange,
+        'avatar': this.avatarchange,
+        'description': this.descriptionchange,
+        'bodyswap': this.bodyswap
+    }
 	}
 
 	public override async registerApplicationCommands(registry: Subcommand.Registry) {
@@ -96,271 +114,306 @@ export class Apply extends Subcommand {
 		);
 	}
 
-    public async verifyRequest(interaction: Subcommand.ChatInputCommandInteraction) {
-        const player = await container.users.findOne({ userId: interaction.user.id }) as unknown as Player
-        if (!player) {
-            await interaction.reply({ content: 'You have not accepted our Privacy Policy and Terms of Service yet. Please use `/setup`.', ephemeral: true })
-            return [false, null, null]
-        }
-        const game = await container.game.findOne({ channel: interaction.channel?.id }) as unknown as Game
-        if (!game) {
-            await interaction.reply({ content: 'This channel does not have a game associated with it', ephemeral: true })
-            return [false, null, null]
-        }
-        // check if the player is in the game
-        if (!Object.keys(game.players).includes(interaction.user.id)) {
-            await interaction.reply({ content: 'You are not in the game associated with this channel', ephemeral: true })
-            return [false, null, null]
-        }
-        if (game.state.status !== GameStatus.WAITING) {
-            await interaction.reply({ content: 'We are not in a state to apply effects to a player', ephemeral: true })
-            return [false, null, null]
-        }
-        if (game.state.failClaim != null) {
-            if (game.state.currentPlayer?.userId == interaction.user.id) {
-                await interaction.reply({ content: 'You can\'t apply any effects while under a fail!', ephemeral: true })
-                return [false, null, null]
-            }
-            if (game.state.failClaim != interaction.user.id) {
-                await interaction.reply({ content: 'You are not the user who claimed this fail!', ephemeral: true })
-                return [false, null, null]
-            }
-        if (game.state.currentPlayer?.userId != interaction.options.getUser('target')?.id) {
-            if (game.state.currentPlayer?.userId != interaction.options.getUser('target')?.id) {
-                await interaction.reply({ content: 'You are applying to a failed user, please select them.', ephemeral: true })
-                return [false, null, null]
-            }
-        }
-        } else if (game.state.currentPlayer?.userId != interaction.user.id) {
-            await interaction.reply({ content: 'It is not your turn', ephemeral: true })
-            return [false, null, null]
-        }
-        return [true, player, game]
-    }   
-
-    public async checkEffect(card: Card, type: string) {
-        if (card.effect.tags.includes('fail') || card.effect.tags.includes('luck')) {
-            return true
-        }
-        if (card.type != CardType.TF) {
-            return false
-        }
-        if (card.effect.tags.includes(type)) {
-            return true
-        }
-        return false
-    }
+    
         
 
-    public async mentaleffect(interaction: Subcommand.ChatInputCommandInteraction) {
+    public async mentaleffect(interaction: Subcommand.ChatInputCommandInteraction | MessageComponentInteraction, optionals?: optionalProps) {
         // @ts-ignore
-        const [verified, _player, game] = await this.verifyRequest(interaction)
+        const [verified, _player, game] = await container.gl.verifyRequest(interaction, optionals)
         console.log(verified, game)
         if (!verified) {
             return
         }
         // @ts-ignore
-        if (!this.checkEffect(game?.state.lastCard, 'mental')) {
+        if (!container.gl.checkEffect(game?.state.lastCard, 'mental')) {
             await interaction.reply({ content: 'This card is not a mental effect card', ephemeral: true })
             return
         }
 
-        const target = interaction.options.getUser('target')
-        const effect = interaction.options.getString('effect')
+        const target = interaction instanceof MessageComponentInteraction ? optionals?.target : interaction.options.getUser('target')
+        const effect = interaction instanceof MessageComponentInteraction ? optionals?.effect : interaction.options.getString('effect')
         if (!target || !effect) {
             await interaction.reply({ content: 'Invalid target or effect', ephemeral: true })
             return
         }
         // apply effect to target using gl applyEffect
         // @ts-ignore
-        const [_state, passed, msg] = await this.container.gl.applyEffect(game, effect, target.id, false)
+        const result = await container.gl.waitForShieldOrReverse(game, target, interaction, {
+            title: 'Effect Applied',
+            description: `${target.username} has been affected by ${effect}`,
+            color: 0x00ff00,
+            footer: { text:`Applied by ${interaction.user.username}` }
+        }, 'mental', effect)
+        if (!result) {
+            if (!interaction.replied) {
+                await interaction.reply({ content: 'Error', ephemeral: true })
+            }
+        }
+        // @ts-ignore
+        const [_state, passed, msg] = await container.gl.applyEffect(game, effect, target.id, false)
         if (!passed) {
             // @ts-ignore
             await interaction.reply({ content: msg, ephemeral: true })
             return
         }
-        return await interaction.reply(
-            new MessageBuilder()
-        .setEmbeds([{
-            title: 'Effect Applied',
-            description: `${target.username} has been affected by ${effect}`,
-            color: 0x00ff00,
-            footer: { text:`Applied by ${interaction.user.username}` }
-        }]))
+        // @ts-ignore
+        await interaction.reply({ content: 'The effect has been applied.' })
+        return await interaction.channel?.send({
+            embeds: [{
+                title: 'Effect Applied',
+                description: `${target.username} has been affected by ${effect}. **Since both players chose to do nothing, the effect has been applied.**`,
+                color: 0x00ff00,
+                footer: { text:`Applied by ${interaction.user.username}` }
+            }]
+        })
     }
 
-    public async physicaleffect(interaction: Subcommand.ChatInputCommandInteraction) {
+    public async physicaleffect(interaction: Subcommand.ChatInputCommandInteraction | MessageComponentInteraction, optionals?: optionalProps) {
         // @ts-ignore
-        const [verified, _player, game] = await this.verifyRequest(interaction)
+        const [verified, _player, game] = await container.gl.verifyRequest(interaction, optionals)
         if (!verified) {
             return
         }
         // @ts-ignore
-        if (!this.checkEffect(game?.state.lastCard, 'physical')) {
+        if (!container.gl.checkEffect(game?.state.lastCard, 'physical')) {
             await interaction.reply({ content: 'This card is not a physical effect card', ephemeral: true })
             return
         }
-        const target = interaction.options.getUser('target')
-        const effect = interaction.options.getString('effect')
+        const target = interaction instanceof MessageComponentInteraction ? optionals?.target : interaction.options.getUser('target')
+        const effect = interaction instanceof MessageComponentInteraction ? optionals?.effect : interaction.options.getString('effect')
         if (!target || !effect) {
             await interaction.reply({ content: 'Invalid target or effect', ephemeral: true })
             return
         }
         // apply effect to target using gl applyEffect
         // @ts-ignore
-        const [_state, passed, msg] = await this.container.gl.applyEffect(game, effect, target.id, true)
+        const result = await container.gl.waitForShieldOrReverse(game, target, interaction, {
+            title: 'Effect Applied',
+            description: `${target.username} has been affected by ${effect}`,
+            color: 0x00ff00,
+            footer: { text:`Applied by ${interaction.user.username}` }
+        }, 'physical', effect)
+        // @ts-ignore
+        const [_state, passed, msg] = await container.gl.applyEffect(game, effect, target.id, true)
         if (!passed) {
             // @ts-ignore
             await interaction.reply({ content: msg, ephemeral: true })
             return
         }
-        return await interaction.reply(
-            new MessageBuilder()
-        .setEmbeds([{
-            title: 'Effect Applied',
-            description: `${target.username} has been affected by ${effect}`,
-            color: 0x00ff00,
-            footer: { text:`Applied by ${interaction.user.username}` }
-        }]))
+        await interaction.editReply({ content: 'The effect has been applied.' })
+        return await interaction.channel?.send({
+            embeds: [{
+                title: 'Effect Applied',
+                description: `${target.username} has been affected by ${effect}. **Since both players chose to do nothing, the effect has been applied.**`,
+                color: 0x00ff00,
+                footer: { text:`Applied by ${interaction.user.username}` }
+            }]
+        })
     }
 
-    public async namechange(interaction: Subcommand.ChatInputCommandInteraction) {
+    public async namechange(interaction: Subcommand.ChatInputCommandInteraction | MessageComponentInteraction, optionals?: optionalProps) {
         // @ts-ignore
-        const [verified, _player, game] = await this.verifyRequest(interaction)
+        const [verified, _player, game] = await container.gl.verifyRequest(interaction, optionals)
         if (!verified) {
             return
         }
         // @ts-ignore
-        if (!this.checkEffect(game?.state.lastCard, 'name')) {
+        if (!container.gl.checkEffect(game?.state.lastCard, 'name')) {
             await interaction.reply({ content: 'This card is not a name change card', ephemeral: true })
             return
         }
-        const target = interaction.options.getUser('target')
-        const name = interaction.options.getString('name')
+        const target = interaction instanceof MessageComponentInteraction ? optionals?.target : interaction.options.getUser('target')
+        const name = interaction instanceof MessageComponentInteraction ? optionals?.effect : interaction.options.getString('name')
         if (!target || !name) {
             await interaction.reply({ content: 'Invalid target or name', ephemeral: true })
             return
         }
         // apply effect to target using gl applyEffect
         // @ts-ignore
-        const [_state, passed, msg] = await this.container.gl.nameChange(game, name, target.id)
+        const result = await container.gl.waitForShieldOrReverse(game, target, interaction, {
+            title: 'Name Changed',
+            description: `${target.username} has been changed to ${name}`,
+            color: 0x00ff00,
+            footer: { text:`Applied by ${interaction.user.username}` }
+        }, 'name', name)
+        if (!result) {
+            if (!interaction.replied) {
+                await interaction.reply({ content: 'Error', ephemeral: true })
+            }
+        }
+        // @ts-ignore
+        const [_state, passed, msg] = await container.gl.nameChange(game, name, target.id)
         if (!passed) {
             // @ts-ignore
             await interaction.reply({ content: msg, ephemeral: true })
             return
         }
-        return await interaction.reply(
-            new MessageBuilder()
-        .setEmbeds([{
-            title: 'Name Changed',
-            description: `${target.username} has been changed to ${name}`,
-            color: 0x00ff00,
-            footer: { text:`Applied by ${interaction.user.username}` }
-        }]))
+        await interaction.editReply({ content: 'The name has been changed.' })
+        return await interaction.channel?.send({
+            embeds: [{
+                title: 'Name Changed',
+                description: `${target.username}'s name has been changed to ${name}. **Since both players chose to do nothing, the effect has been applied.**`,
+                color: 0x00ff00,
+                footer: { text:`Applied by ${interaction.user.username}` }
+            }]
+        })
     }
 
-    public async avatarchange(interaction: Subcommand.ChatInputCommandInteraction) {
+    public async avatarchange(interaction: Subcommand.ChatInputCommandInteraction | MessageComponentInteraction, optionals?: optionalProps) {
         // @ts-ignore
-        const [verified, _player, game] = await this.verifyRequest(interaction)
+        const [verified, _player, game] = await container.gl.verifyRequest(interaction, optionals)
         if (!verified) {
             return
         }
         // @ts-ignore
-        if (!this.checkEffect(game?.state.lastCard, 'name') || this.checkEffect(game?.state.lastCard, 'mental')) {
+        if (!container.gl.checkEffect(game?.state.lastCard, 'name') || container.gl.checkEffect(game?.state.lastCard, 'mental')) {
             await interaction.reply({ content: 'This card is not an avatar change card', ephemeral: true })
             return
         }
-        const target = interaction.options.getUser('target')
-        const avatar = interaction.options.getString('avatar')
+        const target = interaction instanceof MessageComponentInteraction ? optionals?.target : interaction.options.getUser('target')
+        const avatar = interaction instanceof MessageComponentInteraction ? optionals?.effect : interaction.options.getString('avatar')
         if (!target || !avatar) {
             await interaction.reply({ content: 'Invalid target or avatar', ephemeral: true })
             return
         }
         // apply effect to target using gl applyEffect
         // @ts-ignore
-        const [_state, passed, msg] = await this.container.gl.avatarChange(game, avatar, target.id)
-        if (!passed) {
-            // @ts-ignore
-            await interaction.reply({ content: msg, ephemeral: true })
-            return
-        }
-        return await interaction.reply(
-            new MessageBuilder()
-        .setEmbeds([{
+        const result = await container.gl.waitForShieldOrReverse(game, target, interaction, {
             title: 'Avatar Changed',
             description: `${target.username} has been changed to ${avatar}`,
             color: 0x00ff00,
             footer: { text:`Applied by ${interaction.user.username}` }
-        }]))
+        }, 'avatar', avatar)
+        if (!result) {
+            if (!interaction.replied) {
+                await interaction.reply({ content: 'Error', ephemeral: true })
+            }
+        }
+        // @ts-ignore
+        const [_state, passed, msg] = await container.gl.avatarChange(game, avatar, target.id)
+        if (!passed) {
+            // @ts-ignore
+            await interaction.reply({ content: msg, ephemeral: true })
+            return
+        }
+        // @ts-ignore
+        await interaction.editReply({ content: 'The avatar has been changed.' })
+        return await interaction.channel?.send({
+            embeds: [{
+                title: 'Avatar Changed',
+                description: `${target.username}'s avatar has been changed to ${avatar}. **Since both players chose to do nothing, the effect has been applied.**`,
+                color: 0x00ff00,
+                footer: { text:`Applied by ${interaction.user.username}` }
+            }]
+        })
     }
 
-    public async descriptionchange(interaction: Subcommand.ChatInputCommandInteraction) {
+    public async descriptionchange(interaction: Subcommand.ChatInputCommandInteraction | MessageComponentInteraction, optionals?: optionalProps)  {
         // @ts-ignore
-        const [verified, _player, game] = await this.verifyRequest(interaction)
+        const [verified, _player, game] = await container.gl.verifyRequest(interaction, optionals)
         if (!verified) {
             return
         }
         // @ts-ignore
-        if (this.checkEffect(game?.state.lastCard, 'name')) {
+        if (container.gl.checkEffect(game?.state.lastCard, 'name')) {
             await interaction.reply({ content: 'This card does not let you change descriptions.', ephemeral: true })
             return
         }
-        const target = interaction.options.getUser('target')
-        const description = interaction.options.getString('description')
+        const target = interaction instanceof MessageComponentInteraction ? optionals?.target : interaction.options.getUser('target')
+        const description = interaction instanceof MessageComponentInteraction ? optionals?.effect : interaction.options.getString('description')
         if (!target || !description) {
             await interaction.reply({ content: 'Invalid target or description', ephemeral: true })
             return
         }
+
         // apply effect to target using gl applyEffect
         // @ts-ignore
-        const [_state, passed, msg] = await this.container.gl.descriptionChange(game, description, target.id)
+        const result = await container.gl.waitForShieldOrReverse(game, target, interaction, {
+            title: 'Description Changed',
+            description: `${target.username}'s description has been changed to ${description}`,
+            color: 0x00ff00,
+            footer: { text:`Applied by ${interaction.user.username}` }
+        }, 'description', description)
+        if (!result) {
+            if (!interaction.replied) {
+                await interaction.reply({ content: 'Error', ephemeral: true })
+            }
+        }
+
+        // @ts-ignore
+        const [_state, passed, msg] = await container.gl.descriptionChange(game, description, target.id)
         if (!passed) {
             // @ts-ignore
             await interaction.reply({ content: msg, ephemeral: true })
             return
         }
-        return await interaction.reply(
-            new MessageBuilder()
-        .setEmbeds([{
-            title: 'Description Changed',
-            description: `${target.username} has been changed to ${description}`,
-            color: 0x00ff00,
-            footer: { text:`Applied by ${interaction.user.username}` }
-        }]))
+        await interaction.editReply({ content: 'The description has been changed.' })
+        return await interaction.channel?.send({
+            embeds: [{
+                title: 'Description Changed',
+                description: `${target.username}'s description has been changed to ${description}. **Since both players chose to do nothing, the effect has been applied.**`,
+                color: 0x00ff00,
+                footer: { text:`Applied by ${interaction.user.username}` }
+            }]
+        })
+        
     }
 
-    public async bodyswap(interaction: Subcommand.ChatInputCommandInteraction) {
+    public async bodyswap(interaction: Subcommand.ChatInputCommandInteraction | MessageComponentInteraction, optionals?: optionalProps) {
         // @ts-ignore
-        const [verified, _player, game] = await this.verifyRequest(interaction)
+        const [verified, _player, game] = await container.gl.verifyRequest(interaction, optionals)
+        console.log(verified, game)
         if (!verified) {
             return
         }
+        console.log('checking effect')
         // @ts-ignore
-        if (!this.checkEffect(game?.state.lastCard, 'bodyswap')) {
-            await interaction.reply({ content: 'This card is not a body swap card', ephemeral: true })
+        if (!container.gl.checkEffect(game?.state.lastCard, 'bodyswap')) {
+            await interaction.editReply({ content: 'This card is not a body swap card' })
             return
         }
-        const target = interaction.options.getUser('target')
-        const swapTarget = interaction.options.getUser('swapTarget')
+        console.log('checked effect')
+        const target = interaction instanceof MessageComponentInteraction ? optionals?.target : interaction.options.getUser('target')
+        const swapTarget = interaction instanceof MessageComponentInteraction ? optionals?.target2 : interaction.options.getUser('swaptarget')
+        console.log(target, swapTarget)
         if (!target || !swapTarget) {
-            await interaction.reply({ content: 'Invalid target or swap target', ephemeral: true })
+            await interaction.editReply({ content: 'Invalid target or swap target'})
             return
         }
-        // apply effect to target using gl applyEffect
+        console.log('applying effect')
         // @ts-ignore
-        const [_state, passed, msg] = await this.container.gl.bodySwap(game, target.id, swapTarget.id)
-        if (!passed) {
-            // @ts-ignore
-            await interaction.reply({ content: msg, ephemeral: true })
-            return
-        }
-        return await interaction.reply(
-            new MessageBuilder()
-        .setEmbeds([{
+        const result = await container.gl.waitForShieldOrReverse(game, target, interaction,
+            {
             title: 'Body Swapped',
             description: `${target.username} has been swapped with ${swapTarget.username}`,
             color: 0x00ff00,
             footer: { text:`Applied by ${interaction.user.username}` }
-        }]))
+        }, 'bodyswap', '', swapTarget)
+        if (!result) {
+            if (!interaction.replied) {
+                await interaction.reply({ content: 'Error'})
+            }
+        }
+        // @ts-ignore
+        const [_state, passed, msg] = await container.gl.bodySwap(game, target.id, swapTarget.id)
+        if (!passed) {
+            // @ts-ignore
+            await interaction.editReply({ content: msg })
+            return
+        }
+        // defered previously
+        await interaction.editReply({ content: 'The body swap has been completed.' })
+        return await interaction.channel?.send({
+            embeds: [{
+                title: 'Body Swapped',
+                description: `${target.username} has been swapped with ${swapTarget.username}. **Since both players chose to do nothing, the effect has been applied.**`,
+                color: 0x00ff00,
+                footer: { text:`Applied by ${interaction.user.username}` }
+            }]
+        })
+        
+        
     }
+
+    
 }
