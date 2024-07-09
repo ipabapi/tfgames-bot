@@ -41,6 +41,7 @@ export class UseItemCommand extends Command {
         'TYPE_ERROR': 'Unknown error! Please contact the developer!',
         'SHIELD_ACTIVE': 'You already have a shield active!',
         'STEAL_ACTIVE': 'This player already has a steal waiting!',
+        'STEAL_SELF': 'You cannot steal a turn from yourself!',
         'EXTRA_TURN_ACTIVE': 'You already have an extra turn active!'
     } as {[key: string]: string}
 
@@ -59,7 +60,11 @@ export class UseItemCommand extends Command {
         const itemID = Object.keys(items).find((item) => items[item].name.toLowerCase().replaceAll(' ', '') === interaction.options.getString('item')?.toLowerCase().replaceAll(' ', '')) || '';
         const player = await this.container.users.findOne({userId: interaction.user.id}) as unknown as Player;
         console.log(itemID, player)
-        const target = interaction.options.getUser('user')?.id || interaction.user.id;
+        let target = interaction.options.getUser('user')?.id || interaction.user.id;
+        if (items[itemID].types.includes('steal') && target === interaction.user.id) {
+            // find the first player in game.state.turnOrder that is not the current player
+            target = game.state.turnOrder.find((player) => player.userId !== interaction.user.id)?.userId || '';
+        }
         const [successful, code, newGame] = await this.container.InventoryManager.useItem(player, interaction.guild.id, itemID, game, target);
         delete newGame._id; // to ensure that the _id is not updated on accident
         await this.container.game.updateOne({channel: interaction.channel?.id}, {$set: newGame});

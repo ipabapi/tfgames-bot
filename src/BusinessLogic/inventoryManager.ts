@@ -132,7 +132,9 @@ export class InventoryManager {
     }
 
     async stealType(player: Player, game: Game, target: string) {
-        console.log(game.state)
+        if (player.userId === target) {
+            return [false, 'STEAL_SELF', game]
+        }
         if (!game.state.stealsActive[target]) {
             game.state.stealsActive[target] = player.userId
             return [true, 'STEAL_USED', game]

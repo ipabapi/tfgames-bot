@@ -67,9 +67,7 @@ export class GameLogic {
         }
 		// Check if there is anything in active steals
 		console.log(game.stealsActive)
-		if (Object.keys(game.stealsActive).length >	0) {
-			// If there is, check if the next player is the target of a steal
-			if (game.stealsActive[game.turnOrder[0].userId]) {
+		if (Object.keys(game.stealsActive).length >	0 && game.stealsActive[game.turnOrder[0].userId]) {
 				// If they are, advance the turn to the player who stole from them
 				const nextPlayer = game.stealsActive[game.turnOrder[0].userId];
 				delete game.stealsActive[game.turnOrder[0].userId];
@@ -78,7 +76,9 @@ export class GameLogic {
 					throw new Error('Player not found, how did this happen?');
 				}
 				game.currentPlayer = player;
-			}
+				//@ts-ignore
+				game.turnOrder.push(game.turnOrder.shift());
+			
 		} else {
 			game.currentPlayer = game.turnOrder.shift() || null;
 		}

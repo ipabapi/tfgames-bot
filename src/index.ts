@@ -47,7 +47,7 @@ const client = new SapphireClient({
 	loadMessageCommandListeners: true,
 	hmr: {
 		
-		enabled: true,
+		enabled: false,
 	}
 });
 
