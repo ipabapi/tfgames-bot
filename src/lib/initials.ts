@@ -27,6 +27,13 @@ export const initialCharacter: Character = {
     description: '',
     mentalEffects: [],
     physicalEffects: [],
+    originalState: {
+        name: '',
+        avatar: '',
+        description: '',
+    },
+    bodySwapped: false,
+    bodySwapId: null,
     mindBroken: false,
     mindControlled: null,
     mindControlLeft: 0,
@@ -64,9 +71,10 @@ export const initialGameState: GameState = {
     discard: [],
     lastCard: null, 
     lastPlayer: null,
-    lastAction: null,
+    failClaim: null,
     status: GameStatus.WAITINGFORPLAYERS,
     turn: 0,
+    pass: true,
     afkPlayers: []
 }
 

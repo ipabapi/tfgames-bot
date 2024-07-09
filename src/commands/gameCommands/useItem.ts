@@ -60,7 +60,9 @@ export class UseItemCommand extends Command {
         const player = await this.container.users.findOne({userId: interaction.user.id}) as unknown as Player;
         console.log(itemID, player)
         const target = interaction.options.getUser('user')?.id || interaction.user.id;
-        const [successful, code, _newGame] = await this.container.InventoryManager.useItem(player, interaction.guild.id, itemID, game, target);
+        const [successful, code, newGame] = await this.container.InventoryManager.useItem(player, interaction.guild.id, itemID, game, target);
+        delete newGame._id; // to ensure that the _id is not updated on accident
+        await this.container.game.updateOne({channel: interaction.channel?.id}, {$set: newGame});
         if (!successful) return interaction.reply(this.errorMessages[code]);
         return interaction.reply(`${items[itemID].name} used successfully!`);        
     }

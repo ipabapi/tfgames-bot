@@ -6,6 +6,7 @@
         "effect": {
             "tags": [
                 "body",
+                "physical",
                 "single-target",
                 "transformation",
                 "general",
@@ -30,6 +31,7 @@
         "effect": {
             "tags": [
                 "mind",
+                "mental",
                 "single-target",
                 "transformation",
                 "general",
@@ -78,6 +80,7 @@
         "effect": {
             "tags": [
                 "inanimate",
+                "physical",
                 "single-target",
                 "transformation",
                 "general",
@@ -102,6 +105,7 @@
         "effect": {
             "tags": [
                 "absorption",
+                "physical",
                 "single-target",
                 "transformation",
                 "general",
@@ -126,6 +130,7 @@
         "effect": {
             "tags": [
                 "body",
+                "bodyswap",
                 "single-target",
                 "transformation",
                 "general",

@@ -11,6 +11,7 @@ export class PassCommand extends Command {
             description: 'Pass your turn',
             enabled: true,
             runIn: CommandOptionsRunTypeEnum.GuildAny,
+            preconditions: ['NoActiveGame']
         });
     }
 
@@ -30,6 +31,10 @@ export class PassCommand extends Command {
         if (game.state.status == GameStatus.WAITINGFORPLAYERS) return interaction.reply('Game has not started yet!');
         if (!Object.keys(game.players).includes(interaction.user.id)) return interaction.reply('You are not in the game!');
         if (game.state.currentPlayer.userId !== interaction.user.id) return interaction.reply('It is not your turn!');
+        if (game.state.lastCard) {
+            if (game.state.lastCard?.effect.tags.includes('fail')) return interaction.reply('You cannot pass your turn after drawing a fail card!');
+        }
+        if (!game.state.pass) return interaction.reply('You cannot pass your turn! Please draw a card or advance the game.');
         // Pass turn
         const newGameState = await this.container.gl.advanceTurn(game.state);
         if (!newGameState) return interaction.reply('There was an error passing the turn');

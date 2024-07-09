@@ -17,6 +17,7 @@ export class AdminCommand extends Subcommand {
                     messageRun: 'resetCards',
                     chatInputRun: 'resetCards',
                     default: true
+                    // add preconditions here for owner only
                 }
                 
             ]

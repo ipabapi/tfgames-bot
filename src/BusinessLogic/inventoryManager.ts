@@ -104,7 +104,8 @@ export class InventoryManager {
         if (!functionType) {
             return [false, 'TYPE_ERROR', game]
         }
-        const result = functionType(player, game, target)
+        const result = await functionType(player, game, target)
+        console.log(result, result[2].players[player.userId])
         if (result === undefined) {
             return [false, 'TYPE_ERROR', game]
         }
@@ -121,6 +122,7 @@ export class InventoryManager {
         if (game.players[player.userId].shieldActive) {
             return [false, 'SHIELD_ACTIVE', game]
         }
+        game.players[player.userId].shieldActive = true
         return [true, 'SHIELD_USED', game]
     }
     // TODO: Implement reverse

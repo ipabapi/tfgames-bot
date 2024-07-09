@@ -40,6 +40,13 @@ export interface Character {
     description: string; // the description of the character
     mentalEffects: string[]; // the mental effects the character has
     physicalEffects: string[]; // the physical effects the character has
+    originalState: {
+        name: string; // the original name of the character
+        avatar: string; // the original avatar of the character
+        description: string; // the original description of the character
+    }
+    bodySwapped: boolean; // if the character is body swapped
+    bodySwapId: ObjectId | null; // the id of the character they are body swapped with, if any
     mindBroken: boolean; // if the character is mind broken
     mindControlled: string | null; // the player that is mind controlling the character, if any
     mindControlLeft: number; // the amount of turns left for mind control
@@ -114,9 +121,10 @@ export interface GameState {
     discard: string[]; // the discard pile
     lastCard: Card | null; // the last card played
     lastPlayer: Player | null; // the last player to play a card
-    lastAction: string | null; // the last action that happened, mainly for logging
+    failClaim: string | null; // the player that has claimed a fail
     status: GameStatus; // the status of the game
     turn: number; // the current turn
+    pass: boolean; // if the player is eligible to pass
     afkPlayers: Player[]; // the players that are afk
 }
 

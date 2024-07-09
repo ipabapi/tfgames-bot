@@ -1,5 +1,6 @@
 import { container } from '@sapphire/framework';
 import { GameState, Game, GameStatus, Player } from '../lib/bot.types';
+import { ObjectId } from 'mongodb';
 
 export class GameLogic {
 	constructor() {}
@@ -31,6 +32,7 @@ export class GameLogic {
 
 		game.discard.unshift(cardData);
 		game.status = GameStatus.WAITING;
+		game.pass = true;
 		//@ts-ignore
 		game.lastCard = card;
 		// return the card and the game
@@ -52,6 +54,7 @@ export class GameLogic {
 		if (!game.turnOrder.length) {
 			throw new Error('Turn order is empty, how did this happen?');
 		}
+		game.failClaim = null;
 		// Advance the turn
         // Check if extraTurnUsed is true
         if (game.extraTurnUsed && game.extraTurn) {
@@ -86,6 +89,7 @@ export class GameLogic {
         if (!game.turnOrder.find((player) => player.userId === game.currentPlayer?.userId)) {
             game.turnOrder.push(game.currentPlayer);
         }
+		game.pass = false;
 		game.status = GameStatus.TURNSTART;
 		// return the game
 		return game;
@@ -142,22 +146,167 @@ export class GameLogic {
 			return [game, false, 'Player not found, are you sure they are in the game?'];
 		}
 		// Apply the effect
-		const character = await container.characters.findOne({ id: game.players[player].character });
+		console.log(game, player, game.players[player].character, effect, type)
+		const character = await container.characters.findOne({ _id: new ObjectId(game.players[player].character) });
+		console.log(character, !character)
 		if (!character) {
 			return [game, false, 'Character not found, how did this happen?'];
 		}
 		const string = (type ? 'physical' : 'mental') + 'Effects';
 		const success = await container.characters.updateOne(
-			{ id: game.players[player].character },
+			{ _id: new ObjectId(character._id) },
 			{
 				$set: {
 					[string]: [...character[string], effect]
 				}
 			}
 		);
+		if (game.state.pass) {
+			await container.game.updateOne({ channel: game.channel }, { $set: { 'state.pass': false } });
+		}
 		if (!success) {
 			return [game, false, 'Effect not applied, how did this happen?'];
 		}
+		// Return the game
+		game.state.pass = false;
+		return [game, true, ''];
+	}
+
+	public async nameChange(game: Game, name: string, targetUser: string) {
+		if (name == '') {
+			return [game, false, 'Name is empty'];
+		}
+		// Find the player
+		const player = Object.keys(game.players).find((player) => player === targetUser);
+		if (!player) {
+			return [game, false, 'Player not found, are you sure they are in the game?'];
+		}
+		// Apply the effect
+		const character = await container.characters.findOne({ _id: new ObjectId(game.players[player].character) });
+		if (!character) {
+			return [game, false, 'Character not found, how did this happen?'];
+		}
+		const success = await container.characters.updateOne(
+			{ id: game.players[player].character },
+			{
+				$set: {
+					name: name
+				}
+			}
+		);
+		if (!success) {
+			return [game, false, 'Name not changed, how did this happen?'];
+		}
+		if (game.state.pass) {
+			await container.game.updateOne({ channel: game.channel }, { $set: { 'state.pass': false } });
+		}
+		game.state.pass = false;
+		// Return the game
+		return [game, true, ''];
+	}
+
+	public async avatarChange(game: Game, avatar: string, targetUser: string) {
+		if (avatar == '') {
+			return [game, false, 'Avatar is empty'];
+		}
+		// Find the player
+		const player = Object.keys(game.players).find((player) => player === targetUser);
+		if (!player) {
+			return [game, false, 'Player not found, are you sure they are in the game?'];
+		}
+		// Apply the effect
+		const character = await container.characters.findOne({ _id: new ObjectId(game.players[player].character) });		if (!character) {
+			return [game, false, 'Character not found, how did this happen?'];
+		}
+		const success = await container.characters.updateOne(
+			{ id: game.players[player].character },
+			{
+				$set: {
+					avatar: avatar
+				}
+			}
+		);
+		if (!success) {
+			return [game, false, 'Avatar not changed, how did this happen?'];
+		}
+		if (game.state.pass) {
+			await container.game.updateOne({ channel: game.channel }, { $set: { 'state.pass': false } });
+		}
+		game.state.pass = false;
+		// Return the game
+		return [game, true, ''];
+	}
+
+	public async descriptionChange(game: Game, description: string, targetUser: string) {
+		if (description == '') {
+			return [game, false, 'Description is empty'];
+		}
+		// Find the player
+		const player = Object.keys(game.players).find((player) => player === targetUser);
+		if (!player) {
+			return [game, false, 'Player not found, are you sure they are in the game?'];
+		}
+		// Apply the effect
+		const character = await container.characters.findOne({ _id: new ObjectId(game.players[player].character) });
+		if (!character) {
+			return [game, false, 'Character not found, how did this happen?'];
+		}
+		const success = await container.characters.updateOne(
+			{ id: game.players[player].character },
+			{
+				$set: {
+					description: description
+				}
+			}
+		);
+		if (!success) {
+			return [game, false, 'Description not changed, how did this happen?'];
+		}
+		if (game.state.pass) {
+			await container.game.updateOne({ channel: game.channel }, { $set: { 'state.pass': false } });
+		}
+		game.state.pass = false;
+		// Return the game
+		return [game, true, ''];
+	}
+
+	public async bodySwap(game: Game, targetUser: string, swapTarget: string) {
+		// Find the player
+		const player = Object.keys(game.players).find((player) => player === targetUser);
+		const player2 = Object.keys(game.players).find((player) => player === swapTarget);
+		if (!player || !player2) {
+			return [game, false, 'Player not found, are you sure they are in the game?'];
+		}
+		// Apply the effect
+		const character = await container.characters.findOne({ _id: new ObjectId(game.players[player].character) });
+		const character2 = await container.characters.findOne({ _id: new ObjectId(game.players[player2].character) });		if (!character || !character2) {
+			return [game, false, 'Character not found, how did this happen?'];
+		}
+		const success = await container.characters.updateOne(
+			{ id: game.players[player].character },
+			{
+				$set: {
+					bodySwapped: true,
+					bodySwapId: game.players[player2].character
+				}
+			}
+		);
+		const success2 = await container.characters.updateOne(
+			{ id: game.players[player2].character },
+			{
+				$set: {
+					bodySwapped: true,
+					bodySwapId: game.players[player].character
+				}
+			}
+		);
+		if (!success || !success2) {
+			return [game, false, 'Body swap not applied, how did this happen?'];
+		}
+		if (game.state.pass) {
+			await container.game.updateOne({ channel: game.channel }, { $set: { 'state.pass': false } });
+		}
+		game.state.pass = false;
 		// Return the game
 		return [game, true, ''];
 	}
