@@ -1,13 +1,13 @@
 import { Subcommand } from '@sapphire/plugin-subcommands';
 import { container } from '@sapphire/framework';
 import { initialGame } from '../../lib/initials';
-import { Deck, Game, GameMode, GameStatus } from '../../lib/bot.types';
+import { Deck, Game, GameMode, GameStatus, Player } from '../../lib/bot.types';
 import { MessageBuilder } from '@sapphire/discord.js-utilities';
 import { ComponentType, PermissionFlagsBits } from 'discord.js';
-const modes: { [key: string]: GameMode } = {
-	normal: GameMode.NORMAL,
-	hardcore: GameMode.HARDCORE
-};
+// const modes: { [key: string]: GameMode } = {
+// 	normal: GameMode.NORMAL,
+// 	hardcore: GameMode.HARDCORE
+// };
 
 interface choosePlayerAndDeckProps {
 	interaction: Subcommand.ChatInputCommandInteraction;
@@ -81,7 +81,7 @@ export class GameCommand extends Subcommand {
 					builder
 						.setName('start')
 						.setDescription('Start the game')
-						.addStringOption((option) => option.setName('game').setDescription('Normal or Hardcore?').setRequired(true))
+						// .addStringOption((option) => option.setName('game').setDescription('Normal or Hardcore?').setRequired(true))
 				)
 				.addSubcommand((builder) => builder.setName('end').setDescription('End the game'))
 				.addSubcommand((builder) =>
@@ -125,6 +125,7 @@ export class GameCommand extends Subcommand {
 			if (result) {
 				// @ts-ignore
 				this.choosePlayerAndDeck({ interaction, gameInit: game, userDecks });
+				this.container.gl.addPlayer(game.state, await container.users.findOne({ userId: interaction.user.id }) as unknown as Player || {}, interaction.channel?.id || '');
 				return interaction.reply('Sent you a DM to choose your character and deck!');
 			} else {
 				return interaction.reply('The vote to join the game failed!');
@@ -173,11 +174,11 @@ export class GameCommand extends Subcommand {
 
 	public async start(interaction: Subcommand.ChatInputCommandInteraction) {
 		if (!interaction.guild) return interaction.reply('This command can only be used in a server!');
-		// Check if the game is normal or hardcore
-		const gameType = interaction.options.getString('game');
-		if (gameType?.toLowerCase() != 'normal' && gameType?.toLowerCase() != 'hardcore') {
-			return interaction.reply('Invalid game type! Please choose normal or hardcore.');
-		}
+		// // Check if the game is normal or hardcore
+		// const gameType = interaction.options.getString('game');
+		// if (gameType?.toLowerCase() != 'normal' && gameType?.toLowerCase() != 'hardcore') {
+		// 	return interaction.reply('Invalid game type! Please choose normal or hardcore.');
+		// }
 		console.log('starting game');
 		// Check if user has setup and characters
 		const user = await container.users.findOne({ userId: interaction.user.id });
@@ -207,7 +208,8 @@ export class GameCommand extends Subcommand {
 		} else {
 			gameInit.channel = interaction.channel?.id || '';
 		}
-		gameInit.gameMode = modes[gameType.toLowerCase()] || GameMode.NORMAL;
+		// gameInit.gameMode = modes[gameType.toLowerCase()] || GameMode.NORMAL;
+		gameInit.gameMode = GameMode.NORMAL;
 
 		// Add the game to the database
 
@@ -295,11 +297,11 @@ export class GameCommand extends Subcommand {
 							if (votes >= players.length) {
 								if (endVotes > dontEndVotes) {
 									await container.game.deleteOne({ channel: i.channel?.id });
-									m.channel.send('The game has ended!');
+									m.edit('The game has ended!');
 									collector.stop();
 									return;
 								} else {
-									m.channel.send('The game has not ended!');
+									m.edit('The game has not ended!');
 									collector.stop();
 									return;
 								}
@@ -317,9 +319,9 @@ export class GameCommand extends Subcommand {
 						// Check the votes
 						if (endVotes > dontEndVotes) {
 							await container.game.deleteOne({ channel: interaction.channel?.id });
-							return m.channel.send('The game has ended!');
+							return m.edit('The game has ended!');
 						} else {
-							return m.channel.send('The game has not ended!');
+							return m.edit('The game has not ended!');
 						}
 					}
 					return;
@@ -539,17 +541,14 @@ export class GameCommand extends Subcommand {
 			)
 			.then(async (m) => {
 				const collector = m.channel.createMessageComponentCollector({ componentType: ComponentType.StringSelect, time: 60000 });
+				let characterID = '';
 				collector.on('collect', async (i) => {
 					if (i.customId == 'choosechara') {
 						const character = userCharacters.find((character) => character._id.toString() == i.values[0]);
 						if (!character) {
 							return i.reply('Invalid character!');
 						}
-						// Add the character to the game
-						await container.game.updateOne(
-							{ channel: gameInit.channel },
-							{ $set: { players: { [i.user.id]: { character: character._id.toString(), deck: '' } } } }
-						);
+						characterID = character._id.toString();
 						return i.reply(
 							new MessageBuilder()
 								.setEmbeds([
@@ -581,11 +580,6 @@ export class GameCommand extends Subcommand {
 						if (!deck) {
 							return i.reply('Invalid deck!');
 						}
-						let characterID = await container.game.findOne({ channel: gameInit.channel });
-						if (!characterID) {
-							return i.reply('Invalid interaction!');
-						}
-						characterID = characterID.players[i.user.id].character;
 
 						await container.game.updateOne(
 							{ channel: gameInit.channel },

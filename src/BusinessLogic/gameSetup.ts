@@ -17,7 +17,7 @@ export async function gameSetup(interaction: Command.ChatInputCommandInteraction
         return;
     }
 
-    interaction.channel?.send({ content: `Okay, I grabbed ${decks.length} decks, containing ${decks.reduce((acc, deck) => acc + deck?.cardIds.length, 0)} cards. Let's shuffle them up and get started!` });
+    interaction.channel?.send({ content: `Okay... I grabbed ${decks.length} decks, containing ${decks.reduce((acc, deck) => acc + deck?.cardIds.length, 0)} cards. Let's shuffle them up...` });
 
     const finalCards = decks.flatMap(deck => deck ? deck.cardIds : []);
     // Shuffle the cards
@@ -27,7 +27,7 @@ export async function gameSetup(interaction: Command.ChatInputCommandInteraction
     }
 
     game.state.deck = finalCards;
-    interaction.channel?.send({ content: `Alright, I shuffled the cards and placed them in the deck. Now comes turn order!` });
+    interaction.channel?.send({ content: `Now I'm going to set up the turn order...` });
     // Set up turn order, shuffle players
     const players = Object.keys(game.players);
     console.log(players);
@@ -41,13 +41,15 @@ export async function gameSetup(interaction: Command.ChatInputCommandInteraction
     game.state.status = GameStatus.TURNSTART;
     game.state.currentPlayer = game.state.turnOrder[game.state.turnOrder.length - 1]; // this is to save A SINGLE unshift and push operation, saving a few nanoseconds
 
-    interaction.channel?.send({ content: `Looks like we'll be starting with <@${game.state.currentPlayer.userId}>!\nThe turn order after that is:\n${game.state.turnOrder.map(player => `<@${player.userId}>`).join(' =>\n')}. Let's get started!` });
+    interaction.channel?.send({ content: `Looks like we'll be starting with <@${game.state.currentPlayer.userId}>!\nThe turn order after that is:\n${game.state.turnOrder.map(player => `<@${player.userId}>`).join(' =>\n')}.` });
 
-    interaction.channel?.send({ content: `Please wait while I let [REDACTED LORE CHARACTER] know we have another game starting!` });
+    interaction.channel?.send({ content: `Please wait while I let Ren know we have another game starting!` });
     game.state.turn = 1;
     // Save the game state
     // TODO: Card draw function implementation
     await container.game.updateOne({ channel: game.channel }, { $set: { state: game.state } });
-    return interaction.reply({ content: `still in progress`, ephemeral: true });
+    interaction.channel?.send({ content: `Looks like we're all set! Let's get started!` });
+
+    return interaction.reply({ content: `You have started the game!`, ephemeral: true });
 
 }

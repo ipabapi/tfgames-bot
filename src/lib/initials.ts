@@ -1,6 +1,6 @@
 // This file will contain the initial objects for use in the application
 
-import { Player, PlayerPreferences, Character, Game, GameState, GameMode, CharacterMode, Inventory, PlayerGuildInfo, GameStatus } from './bot.types'
+import { Player, PlayerPreferences, Character, Game, GameState, GameMode, CharacterMode, PlayerGuildInfo, GameStatus } from './bot.types'
 
 
 
@@ -27,6 +27,13 @@ export const initialCharacter: Character = {
     description: '',
     mentalEffects: [],
     physicalEffects: [],
+    originalState: {
+        name: '',
+        avatar: '',
+        description: '',
+    },
+    bodySwapped: false,
+    bodySwapId: null,
     mindBroken: false,
     mindControlled: null,
     mindControlLeft: 0,
@@ -43,22 +50,11 @@ export const initialCharacter: Character = {
     preferences: initialPreferenceObject
 }
 
-export const initialInventory: Inventory = {
-    shield: 0,
-    reverse: 0,
-    extraTurn: 0,
-    cleanse: 0,
-    steal: 0,
-    tempLock: 0,
-    tempCollar: 0,
-    permaCollar: 0,
-    collarKey: 0,
-}
 
 export const initialGuildInfo: PlayerGuildInfo = {
     games: [],
     gold: 0,
-    inventory: initialInventory,
+    inventory: {},
     blocked: [],
     permaCollared: false,
     collarOwner: null
@@ -68,13 +64,17 @@ export const initialGuildInfo: PlayerGuildInfo = {
 export const initialGameState: GameState = {
     currentPlayer: null,
     turnOrder: [],
+    extraTurnUsed: false,
+    extraTurn: false,
+    stealsActive: {},
     deck: [],
     discard: [],
     lastCard: null, 
     lastPlayer: null,
-    lastAction: null,
+    failClaim: null,
     status: GameStatus.WAITINGFORPLAYERS,
     turn: 0,
+    pass: true,
     afkPlayers: []
 }
 
@@ -87,35 +87,3 @@ export const initialGame: Game = {
     gameMode: GameMode.NORMAL,
 }
 
-export const initialShopInventory = {
-    shield: {
-        name: 'Shield',
-        description: 'Prevent the next effect that would happen to you',
-        cost: 5
-    },
-    reverse: {
-        name: 'Reverse',
-        description: 'Reverse the next effect that would happen to you',
-        cost: 15
-    },
-    extraTurn: {
-        name: 'Extra Turn',
-        description: 'Take an extra turn',
-        cost: 100
-    },
-    reroll: {
-        name: 'Reroll',
-        description: 'Reroll your character',
-        cost: 25
-    },
-    steal: {
-        name: 'Steal',
-        description: 'Steal an item from another player',
-        cost: 50
-    },
-    cleanse: {
-        name: 'Cleanse',
-        description: 'Remove all effects from you',
-        cost: 20
-    },
-}

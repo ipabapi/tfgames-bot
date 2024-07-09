@@ -7,6 +7,7 @@ import '@sapphire/plugin-hmr/register';
 import {DeckBusinessLogic} from "./BusinessLogic/deckBL";
 import { basicCommandUtils} from "./BusinessLogic/basicCommandUtils";
 import { GameLogic } from './BusinessLogic/turnLogic';
+import { InventoryManager } from './BusinessLogic/inventoryManager';
 
 // Declare items to be on the container
 
@@ -24,6 +25,8 @@ declare module '@sapphire/framework' {
 		guilds: import('mongodb').Collection;
 		characters: import('mongodb').Collection;
 		gl: GameLogic;
+		InventoryManager: InventoryManager;
+		ownerId: string;
 	}
 }
 
@@ -44,7 +47,7 @@ const client = new SapphireClient({
 	loadMessageCommandListeners: true,
 	hmr: {
 		
-		enabled: true,
+		enabled: false,
 	}
 });
 
@@ -64,19 +67,31 @@ const main = async () => {
 			container.guilds = container.db.collection('guilds');
 			container.characters = container.db.collection('characters');
 			container.utils = basicCommandUtils;
+			container.InventoryManager = new InventoryManager();
+			container.ownerId = process.env.OWNER_ID || '';
 			client.logger.info('Connected to MongoDB');
 		} catch (error) {
+			
 			client.logger.fatal(error);
 			await client.destroy();
 			process.exit(1);
 		}
 		client.logger.info('Logging in');
 		await client.login();
+		client.logger.info(`Owner ID: ${container.ownerId}`);
 		client.logger.info('logged in');
 	} catch (error) {
+		try {
+			console.log('attempting to send message')
+			// send a message to the owner
+			// @ts-ignore FOR NOW
+			client.application?.owner.send(`An error occurred: ${error}`);
+		} catch (error) {
+		
 		client.logger.fatal(error);
 		await client.destroy();
 		process.exit(1);
+		}
 	}
 	container.deckBusinessLogic = new DeckBusinessLogic();
 };
