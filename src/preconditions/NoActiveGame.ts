@@ -6,9 +6,7 @@ export class NoActiveGamePrecondition extends Precondition {
          return this.checkGame(message);
     }
 
-    public override chatInputRun(message: CommandInteraction) {
-        console.log('chatInputRun');
-        
+    public override chatInputRun(message: CommandInteraction) {        
         return this.checkGame(message)
     }
 

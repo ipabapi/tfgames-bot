@@ -8,6 +8,7 @@ import {DeckBusinessLogic} from "./BusinessLogic/deckBL";
 import { basicCommandUtils} from "./BusinessLogic/basicCommandUtils";
 import { GameLogic } from './BusinessLogic/turnLogic';
 import { InventoryManager } from './BusinessLogic/inventoryManager';
+import { GameManager } from './lib/handlers/gameManager';
 
 // Declare items to be on the container
 
@@ -51,6 +52,7 @@ const main = async () => {
 			container.characters = container.db.collection('characters');
 			container.utils = basicCommandUtils;
 			container.InventoryManager = new InventoryManager();
+			container.GameManager = new GameManager();
 			container.ownerId = process.env.OWNER_ID || '';
 			client.logger.info('Connected to MongoDB');
 		} catch (error) {

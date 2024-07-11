@@ -16,14 +16,14 @@ export class ButtonHandler extends InteractionHandler {
     }
 
     public async run(interaction: ButtonInteraction) {
-        return;
-        await interaction.reply({
-            content: 'Loading...',
-            // Let's make it so only the person who pressed the button can see this message!
-            ephemeral: true
-        });
+        console.log(interaction) 
+        if (interaction.customId == 'game-join') {
+            return this.container.GameManager.choosePlayerAndDeck(interaction);
+        }
         
         switch (interaction.customId){
+            case `game-join`:
+                this.container.GameManager.choosePlayerAndDeck(interaction);
             case `Add`:
                 this.add(interaction);
                 break;

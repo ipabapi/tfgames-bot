@@ -8,7 +8,7 @@ export class HasCharacterPrecondition extends Precondition {
 
     private async checkCharacter(interaction: CommandInteraction) {
         if (!interaction.userData?.player?.characters) {
-            return this.error({ message: 'You do not have a character yet. Use the /createcharacter command to create one.' });
+            return this.error({ message: 'You do not have a character yet. Use the `/character create` command to create one.' });
         }
 
         return this.ok();

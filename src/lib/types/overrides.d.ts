@@ -7,6 +7,7 @@ import { basicCommandUtils } from '../../BusinessLogic/basicCommandUtils';
 import { DeckBusinessLogic } from '../../BusinessLogic/deckBL';
 import { InventoryManager } from '../../BusinessLogic/inventoryManager';
 import { GameLogic } from '../../BusinessLogic/turnLogic';
+import { GameManager } from '../handlers/gameManager';
 
 
 declare module '@sapphire/framework' {
@@ -24,6 +25,7 @@ declare module '@sapphire/framework' {
 		characters: import('mongodb').Collection;
 		gl: GameLogic;
 		InventoryManager: InventoryManager;
+		GameManager: GameManager;
 		ownerId: string;
 		effectTypes: { [key: string]: any };
 	}
@@ -43,4 +45,11 @@ declare module 'discord.js' {
 	  player: Player;
 	};
   }
+
+  interface ButtonInteraction<Cached extends CacheType = CacheType> {
+	userData?: {
+	  game: Game;
+	  player: Player;
+	};
+}
 }

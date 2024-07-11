@@ -11,6 +11,7 @@ export class ApplyContextPrecondition extends AllFlowsPrecondition {
     }
 
     public override async chatInputRun(interaction: ChatInputCommandInteraction) {
+        if (interaction.commandName == 'ping') return this.ok();
         return await this.getData(interaction).then(() => {
             return this.ok()
         })
