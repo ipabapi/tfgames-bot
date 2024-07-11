@@ -1,17 +1,21 @@
-import { Precondition } from '@sapphire/framework';
+import {  Precondition } from '@sapphire/framework';
 import { CommandInteraction } from 'discord.js';
 
 export class NoActiveGamePrecondition extends Precondition {
-    public override async chatInputRun(interaction: CommandInteraction) {
-        return await this.checkGame(interaction);
+   public run(message: CommandInteraction) {
+         return this.checkGame(message);
     }
 
-    private async checkGame(interaction: CommandInteraction) {
-        const game = await this.container.game.findOne({channel: interaction.channel?.id});
-        if (!game) {
-            return this.error({ message: 'There isn\'t a game in this channel yet! Start one by doing `/game start`.' });
-        }
-        return this.ok();
+    public override chatInputRun(message: CommandInteraction) {
+        console.log('chatInputRun');
+        
+        return this.checkGame(message)
+    }
+
+    public checkGame(message: CommandInteraction) {
+        return message.userData?.game ? this.error({ message: 'You are already in a game. Please finish it before starting a new one.',
+        context: { silent: false}
+         }) : this.ok();
     }
 
 }
@@ -21,3 +25,4 @@ declare module '@sapphire/framework' {
         NoActiveGame: never;
     }
 }
+

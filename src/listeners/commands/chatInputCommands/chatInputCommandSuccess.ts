@@ -4,6 +4,7 @@ import { logSuccessCommand } from '../../../lib/utils';
 
 export class UserListener extends Listener {
 	public override run(payload: ChatInputCommandSuccessPayload) {
+		//@ts-ignore
 		logSuccessCommand(payload);
 	}
 

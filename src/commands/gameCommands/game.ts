@@ -44,7 +44,8 @@ export class GameCommand extends Subcommand {
 				{
 					name: 'start',
 					messageRun: 'start',
-					chatInputRun: 'start'
+					chatInputRun: 'start',
+					preconditions: ['NoActiveGame']
 				},
 				{
 					name: 'edit',

@@ -1,7 +1,7 @@
 import './lib/setup';
 
 import { LogLevel, SapphireClient, container } from '@sapphire/framework';
-import {GatewayIntentBits} from 'discord.js';
+import { GatewayIntentBits} from 'discord.js';
 import {MongoClient} from 'mongodb';
 import '@sapphire/plugin-hmr/register';
 import {DeckBusinessLogic} from "./BusinessLogic/deckBL";
@@ -11,25 +11,7 @@ import { InventoryManager } from './BusinessLogic/inventoryManager';
 
 // Declare items to be on the container
 
-declare module '@sapphire/framework' {
-	interface Container {
-		mongoClient: MongoClient;
-		testDB: import('mongodb').Db;
-		deckBusinessLogic : DeckBusinessLogic;
-		utils: typeof basicCommandUtils;
-		db: import('mongodb').Db;
-		users: import('mongodb').Collection;
-		game: import('mongodb').Collection;
-		deck: import('mongodb').Collection;
-		cards: import('mongodb').Collection;
-		guilds: import('mongodb').Collection;
-		characters: import('mongodb').Collection;
-		gl: GameLogic;
-		InventoryManager: InventoryManager;
-		ownerId: string;
-		effectTypes: { [key: string]: any };
-	}
-}
+
 
 const mongoUri = process.env.MONGO_URI;
 
@@ -48,7 +30,7 @@ const client = new SapphireClient({
 	loadMessageCommandListeners: true,
 	hmr: {
 		
-		enabled: false,
+		enabled: true,
 	}
 });
 

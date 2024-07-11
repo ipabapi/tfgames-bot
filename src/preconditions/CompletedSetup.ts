@@ -7,9 +7,7 @@ export class CompletedSetupPrecondition extends Precondition {
     }
 
     private async checkPlayer(interaction: CommandInteraction) {
-        const player = await this.container.users.findOne({ userId: interaction.user.id});
-
-        if (!player) {
+        if (!interaction.userData?.player) {
             return this.error({ message: 'You have not accepted our Terms of Service and Privacy Policy at this time. Please accept them by running `/setup`.' });
         }
         return this.ok();

@@ -16,11 +16,12 @@ export class AdminCommand extends Subcommand {
                     name: 'reset',
                     messageRun: 'resetCards',
                     chatInputRun: 'resetCards',
-                    default: true
-                    // add preconditions here for owner only
+                    default: true,
+                    
                 }
                 
-            ]
+            ],
+            preconditions: ['OwnerOnly'],
         });
 
     }
@@ -39,6 +40,8 @@ export class AdminCommand extends Subcommand {
 
 
     public async resetCards(interaction: Subcommand.ChatInputCommandInteraction) {
+        console.log('in resetcards');
+        console.log(interaction.userData)
         await interaction.reply({ content: `Setting up base Cards in db...`, ephemeral: true, fetchReply: true });
         await interaction.editReply({ content: `Deleting Table Cards...`});
         container.cards.drop();

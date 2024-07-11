@@ -7,11 +7,16 @@ export class HasCharacterPrecondition extends Precondition {
     }
 
     private async checkCharacter(interaction: CommandInteraction) {
-        const character = await this.container.users.findOne({userId: interaction.user.id});
-        if (!character) {
-            return this.error({ message: 'You do not have a character yet!' });
+        if (!interaction.userData?.player?.characters) {
+            return this.error({ message: 'You do not have a character yet. Use the /createcharacter command to create one.' });
         }
 
         return this.ok();
+    }
+}
+
+declare module '@sapphire/framework' {
+    interface Preconditions {
+        HasCharacter: never;
     }
 }
