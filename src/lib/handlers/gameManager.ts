@@ -2,7 +2,7 @@ import { Subcommand } from '@sapphire/plugin-subcommands';
 import { userData } from './informationManager'
 import { ButtonInteraction, ComponentType, InteractionResponse, Message } from 'discord.js';
 import { container } from '@sapphire/framework';
-import { Character, Deck, Game } from '../bot.types';
+import { Character, Deck, Game, GameStatus } from '../bot.types';
 import { ObjectId } from 'mongodb';
 export class GameManager {
 
@@ -26,9 +26,9 @@ export class GameManager {
             deck: '',
             shieldActive: false,
         }
-        
+        await interaction.reply({ content: 'You have chosen to join, please follow the instructions.', ephemeral: true })
 
-        await interaction.reply({ content: '1️⃣. Please select a character.', components: [{
+        await interaction.followUp({ content: '1️⃣. Please select a character.', components: [{
             type: 1,
             components: [{
                 type: 3,
@@ -47,7 +47,7 @@ export class GameManager {
                 custom_id: 'deck-select',
                 options: decks.map(deck => ({ label: deck.name, value: deck._id?.toString() || '', description: deck.description }))
             }]
-        }] }).then(async (m) => await this.collectorHandler(m, playerObj, 'deck'))
+        }], ephemeral: true }).then(async (m) => await this.collectorHandler(m, playerObj, 'deck'))
 
         if (!playerObj.deck) return interaction.followUp({ content: 'You took too long to select a deck.', ephemeral: true })
         if (!interaction.userData) return;
@@ -58,6 +58,9 @@ export class GameManager {
             interaction.userData.game = await container.game.findOne({ channel: interaction.channel?.id }) as unknown as Game;
             await this.changeOriginalStartEmbed(interaction)
             interaction.followUp({ content: 'You have successfully joined the game.', ephemeral: true })
+            if (interaction.userData.game.state.status == GameStatus.WAITINGFORPLAYERS) {
+                interaction.channel?.send({ content: `<@${interaction.user.id}> has joined the game.` })
+            }
             return true;
         } else {
             interaction.followUp({ content: 'There was an error joining the game.', ephemeral: true })
@@ -114,19 +117,17 @@ export class GameManager {
         if (!container.deck.find({ userId: interaction.user.id })) return interaction.reply({ content: 'You need to create a deck first.', ephemeral: true })
         return true
     }
-    public async collectorHandler(m: InteractionResponse | Message, playerObj: { character: string, deck: string, shieldActive: boolean }, type: 'character' | 'deck') {
-        return new Promise((resolve) => {
+    public async collectorHandler(m: Message, playerObj: { character: string, deck: string, shieldActive: boolean }, type: 'character' | 'deck') {
+        return new Promise(async (resolve) => {
             const collector = m.createMessageComponentCollector({ componentType: ComponentType.StringSelect, time: 60000 })
             collector.on('collect', async (selectMenu) => {
                 playerObj[type] = selectMenu.values[0]
-                m.delete()
-                selectMenu.reply({ content: `You have selected a ${type}.`, ephemeral: true })
+                selectMenu.deferUpdate()
                 collector.stop()
             })
             collector.on('end', async (_collected, reason) => {
                 if (reason === 'time') {
                     m.edit({ content: `You took too long to select a ${type}.`, components: [] })
-                    resolve(void 0)
                 } else {
                     resolve(void 0)
                 }

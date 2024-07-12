@@ -16,7 +16,6 @@ export class ButtonHandler extends InteractionHandler {
     }
 
     public async run(interaction: ButtonInteraction) {
-        console.log(interaction) 
         if (interaction.customId == 'game-join') {
             return this.container.GameManager.choosePlayerAndDeck(interaction);
         }

@@ -219,14 +219,6 @@ export class GameCommand extends Subcommand {
 	}
 
 	public async kick(interaction: Subcommand.ChatInputCommandInteraction) {
-		// check if the command is being used in a server
-		if (!interaction.guild) return interaction.reply('This command can only be used in a server!');
-		// check if the game exists
-		const game = await container.game.findOne({ channel: interaction.channel?.id });
-		if (!game) {
-			return interaction.reply('There is no active game in this channel! Try using `/game start` instead.');
-		}
-
 		// check if the user has permission to kick, can be used immediately by moderators, otherwise needs a vote
 		if (interaction.memberPermissions?.has(PermissionFlagsBits.KickMembers)) {
 			this.removePlayer(interaction);
@@ -236,11 +228,11 @@ export class GameCommand extends Subcommand {
 			});
 		}
 		// check if the user is in the game
-		if (!game.players[interaction.user.id]) {
+		if (!interaction.userData?.game.players[interaction.user.id]) {
 			return interaction.reply('You are not in the game!');
 		}
 		// start a vote to kick the player
-		const players = Object.keys(game.players);
+		const players = Object.keys(interaction.userData?.game.players);
 		interaction.channel
 			?.send(
 				new MessageBuilder()
@@ -338,7 +330,6 @@ export class GameCommand extends Subcommand {
 	}
 
 	public async start(interaction: Subcommand.ChatInputCommandInteraction) {
-		console.log('Starting game');
 		const user = interaction.userData?.player;
 		// const userDecks = await this.container.deck.find({ player: '' + interaction.user.id }).toArray() as unknown as Deck[];
 		if (!user) {
