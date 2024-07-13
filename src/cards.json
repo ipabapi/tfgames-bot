@@ -176,7 +176,7 @@
     {
         "stringID": "card_0008",
         "name": "Fail",
-        "description": "https://i.ibb.co/92VJGzJ/failSys.jpg",
+        "image": "https://i.ibb.co/92VJGzJ/failSys.jpg",
         "effect": {
             "tags": [
                 "fail",
@@ -273,29 +273,6 @@
     },
     {
         "stringID": "card_0012",
-        "name": "Reverse",
-        "description": "",
-        "effect": {
-            "tags": [
-                "reverse",
-                "single-target",
-                "item",
-                "general"
-            ],
-            "action": "0002",
-            "singleTarget": true,
-            "targetSelf": true,
-            "multiTarget": false,
-            "randomTarget": false,
-            "allowedModes": [
-                "NORMAL", "HARDCORE"
-            ]
-        },
-        "type": "ITEM",
-        "rarity": "UNCOMMON"
-    },
-    {
-        "stringID": "card_0013",
         "name": "Steal",
         "image": "https://i.ibb.co/V9W4Nty/stealIT.jpg",
         "description": "",
@@ -319,7 +296,7 @@
         "rarity": "UNCOMMON"
     },
     {
-        "stringID": "card_0014",
+        "stringID": "card_0013",
         "name": "10 Gold",
         "description": "",
         "effect": {
@@ -342,7 +319,7 @@
         "rarity": "UNCOMMON"
     },
     {
-        "stringID": "card_0015",
+        "stringID": "card_0014",
         "name": "20 Gold",
         "description": "",
         "effect": {
@@ -365,7 +342,7 @@
         "rarity": "UNCOMMON"
     },
     {
-        "stringID": "card_0016",
+        "stringID": "card_0015",
         "name": "30 Gold",
         "description": "",
         "effect": {

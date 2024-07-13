@@ -1,8 +1,7 @@
 import {Command, container} from '@sapphire/framework';
-import { Message } from 'discord.js';
+import { InteractionResponse } from 'discord.js';
 import { initialPlayer } from '../../lib/initials';
 import { Player } from '../../lib/bot.types';
-import { MessageBuilder } from '@sapphire/discord.js-utilities';
 
 
 export class SetupCommand extends Command {
@@ -26,10 +25,8 @@ export class SetupCommand extends Command {
     private async setup(message: Command.ChatInputCommandInteraction) {
         const user = message.user;
 		const userObj: Player = initialPlayer;
-		user
-			.send(
-				new MessageBuilder()
-					.setEmbeds([
+		return message.reply({
+				embeds: [
 						{
 							title: 'Terms of Use and Privacy Policy',
 							color: 0,
@@ -39,8 +36,8 @@ export class SetupCommand extends Command {
 								text: `Setup for ${user.tag} | This message will expire in 5 minutes.`
 							}
 						}
-					])
-					.setComponents([
+					],
+					components: [
 						{
 							type: 1,
 							components: [
@@ -58,9 +55,12 @@ export class SetupCommand extends Command {
 								}
 							]
 						}
-					])
+					],
+					ephemeral: true
+				}
+					
 			)
-			.then(async (msg: Message) => {
+			.then(async (msg: InteractionResponse) => {
 				const collector = msg.createMessageComponentCollector({
 					filter: (interaction) => interaction.user.id === user.id,
 					time: 300000
@@ -70,23 +70,21 @@ export class SetupCommand extends Command {
 						// Fill in the user object with the user's ID
 						userObj.userId = user.id;
                         this.container.users.insertOne(userObj);
-						await interaction.reply('You have accepted the terms. You can now use the bot. You can review the terms at any time by running `/policy`.\nHappy Transforming!');
+						await interaction.reply({content: 'You have accepted the terms. You can now use the bot. You can review the terms at any time by running `/policy`.\nHappy Transforming!', ephemeral: true});
 						container.deckBusinessLogic.CreateBaseDeck(userObj.userId);
 						collector.stop();
 						return;
 					} else {
-						await interaction.reply('You have declined the terms. You will not be able to use the bot until you accept the terms. If you would like to accept the terms, please run the command again.')
+						await interaction.reply({content: 'You have declined the terms. You will not be able to use the bot until you accept the terms. If you would like to accept the terms, please run the command again.', ephemeral: true});
 						collector.stop();
 						return;
 					}
 				});
 				collector.on('end', async (_collected, reason) => {
 					if (reason === 'time') {
-						await user.send('You took too long to respond. Please run the command again to accept the terms.');
+						await message.followUp({content: 'You took too long to respond. Please run the command again to accept the terms.', ephemeral: true});
 					}
 				});
 			});
-
-        return await message.reply('Check your DMs!');
     }
 }

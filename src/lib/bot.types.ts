@@ -158,7 +158,7 @@ export interface Deck {
     _id?: ObjectId;
     name: string; // the name of the deck
     description: string; // the description of the deck
-    cards: string[]; // the cards in the deck, will be a list of card id or else this will take forever to load
+    cardIds: string[]; // the cards in the deck, will be a list of card id or else this will take forever to load
     creator: string; // the player that created the deck
     guilds: string[]; // the guilds the deck is in, if any, will be a list of guild id or else this will take forever to load
 
@@ -199,4 +199,35 @@ export enum CardRarity {
     RARE = 'RARE',
     EPIC = 'EPIC',
     LEGENDARY = 'LEGENDARY'
+}
+
+export interface EmbedPrep {
+    embeds: {
+        title: string;
+        description: string;
+        color?: number;
+        fields?: {
+            name: string;
+            value: string;
+            inline?: boolean;
+        }[];
+    }[];
+    components: {
+        type: number;
+        custom_id?: string;
+        label?: string;
+        style?: number;
+        components?: Components[];
+    }[];
+}
+
+export interface Components {
+    type: number;
+    custom_id: string;
+    label: string;
+    style: number;
+    emoji?: {
+        name: string;
+        id?: string;
+    };
 }

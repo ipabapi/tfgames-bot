@@ -8,6 +8,13 @@ export class IsPlayer extends Precondition {
             ? this.ok()
             : this.error({ message: 'You are not a player in this game!' });
     }
+
+    public override chatInputRun(interaction: CommandInteraction) {
+        if (!interaction.userData?.game) return this.error({ message: 'Game not found!' });
+        return Object.keys(interaction.userData?.game.players).includes(interaction.user.id)
+            ? this.ok()
+            : this.error({ message: 'You are not a player in this game!' });
+    }
 }
 
 declare module '@sapphire/framework' {

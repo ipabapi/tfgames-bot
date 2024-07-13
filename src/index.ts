@@ -43,7 +43,7 @@ const main = async () => {
 			// container.testDB = container.mongoClient.db('test');
 			container.gl = new GameLogic();
 			const mongoDB = await MongoClient.connect(mongoUri);
-			container.db = mongoDB.db('test');
+			container.db = mongoDB.db('onyx');
 			container.users = container.db.collection('users');
 			container.game = container.db.collection('game');
 			container.deck = container.db.collection('deck');

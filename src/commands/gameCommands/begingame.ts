@@ -1,5 +1,5 @@
-import { Command, container } from '@sapphire/framework';
-import { Game, GameStatus } from '../../lib/bot.types';
+import { Command, CommandOptionsRunTypeEnum } from '@sapphire/framework';
+import { GameStatus } from '../../lib/bot.types';
 import { gameSetup } from '../../BusinessLogic/gameSetup';
 
 export class BeginGameCommand extends Command {
@@ -8,6 +8,8 @@ export class BeginGameCommand extends Command {
             name: 'begingame',
             description: 'Begin a game once all players have joined',
             enabled: true,
+            runIn: [CommandOptionsRunTypeEnum.GuildAny],
+            preconditions: ['GameActive', 'IsPlayer'],
         });
     }
 
@@ -24,22 +26,13 @@ export class BeginGameCommand extends Command {
     }
 
     private async beginGame(interaction: Command.ChatInputCommandInteraction) {
-        // Check if user is in a server
-        if (!interaction.guild) { return interaction.reply('This command can only be used in servers'); }
-
-        // Check if there is a game in this channel
-        const game = await container.game.findOne({ channel: interaction.channel?.id });
+        const game = interaction.userData?.game;
         if (!game) { return interaction.reply('There is no game in this channel'); }
         if (game.state.status != GameStatus.WAITINGFORPLAYERS) { return interaction.reply('The game has already started'); }
 
-        // Check if all players have set up their characters and decks, which are at game.players.character and game.players.deck respectively, game.players is an object with the player's id as the key
         const ready = Object.keys(game.players).every((player) => game.players[player].character && game.players[player].deck);              
         if (!ready) { return interaction.reply('Not all players have finished setting up their characters'); }
-        console.log(ready);
-
-        // Update game status
-        // Start Game Setup
-        return gameSetup(interaction, game as Game);
+        return gameSetup(interaction);
     }
 
 }

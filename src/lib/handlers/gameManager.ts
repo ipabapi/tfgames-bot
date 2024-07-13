@@ -8,14 +8,7 @@ export class GameManager {
 
     public async choosePlayerAndDeck(interaction: Subcommand.ChatInputCommandInteraction | ButtonInteraction) {
         if (!interaction.userData && interaction.guild) interaction.userData = await userData(interaction.channelId, interaction.user.id)
-        
 
-        /** Thinking aloud to myself here.
-         * First, if it is a button command, we need to run the checks (hasCompletedSetup, hasCharacters, hasDeck, etc.)
-         * Then, we need to create our base embeds and select menus.
-         * After we show them the character select menu, we need to wait for them to select a character.
-         * 
-         */
         if (await this.backupChecks(interaction) instanceof InteractionResponse) return;
         // Create the select menu for characters
         const characters = await container.characters.find({ creator: interaction.user.id }).toArray() as unknown as Character[]
@@ -26,7 +19,11 @@ export class GameManager {
             deck: '',
             shieldActive: false,
         }
-        await interaction.reply({ content: 'You have chosen to join, please follow the instructions.', ephemeral: true })
+
+        const starting = !(interaction instanceof ButtonInteraction)
+        if (!interaction.replied) {
+        await interaction.reply({ content: `You have chosen to ${starting ? 'start a new game' : 'join this game'}, please follow the instructions.`, ephemeral: true })
+        }
 
         await interaction.followUp({ content: '1️⃣. Please select a character.', components: [{
             type: 1,
@@ -56,9 +53,12 @@ export class GameManager {
         }})
         if (result.modifiedCount === 1) {
             interaction.userData.game = await container.game.findOne({ channel: interaction.channel?.id }) as unknown as Game;
-            await this.changeOriginalStartEmbed(interaction)
-            interaction.followUp({ content: 'You have successfully joined the game.', ephemeral: true })
             if (interaction.userData.game.state.status == GameStatus.WAITINGFORPLAYERS) {
+                await this.changeOriginalStartEmbed(interaction)
+            }
+            interaction.followUp({ content: 'You have successfully joined the game.', ephemeral: true })
+            // @ts-ignore
+            if (!starting || (!starting && interaction.userData?.game.state.status != GameStatus.WAITINGFORPLAYERS)) {
                 interaction.channel?.send({ content: `<@${interaction.user.id}> has joined the game.` })
             }
             return true;
