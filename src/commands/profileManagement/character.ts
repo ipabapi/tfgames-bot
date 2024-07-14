@@ -50,6 +50,7 @@ export class CharacterCommand extends Subcommand {
 				{
 					name: 'experiment',
 					messageRun: 'experiment',
+					chatInputRun: 'experiment',
 					preconditions: ['CompletedSetup']
 				}
 			]
