@@ -26,6 +26,7 @@ export class ButtonHandler extends InteractionHandler {
                 this.container.GameManager.choosePlayerAndDeck(interaction);
             case 'create-character':
                 await interaction.showModal(CharacterModal())
+                break;
             case `Add`:
                 this.add(interaction);
                 break;

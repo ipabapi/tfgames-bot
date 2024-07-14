@@ -1,6 +1,7 @@
 //@ts-nocheck
 import { ActionRowBuilder, Interaction, ModalBuilder, TextInputBuilder, TextInputStyle, ModalSubmitInteraction} from "discord.js"
 import { initialCharacter } from "../initials"
+import { container } from "@sapphire/framework"
 
 
 export const CharacterModal = () => {
@@ -46,7 +47,7 @@ export async function createCharacter(interaction: ModalSubmitInteraction) {
     if (check) return interaction.reply({ content: 'You already have a character with that name.', ephemeral: true })
     // Create the character
     const initCharacter = {...initialCharacter};
-    iniCharacter.name = characterName
+    initCharacter.name = characterName
     // check if the avatar is provided, and if it is a valid URL
     if (characterAvatar) {
         if (!characterAvatar.startsWith('http')) return interaction.reply({ content: 'The avatar URL must start with http.', ephemeral: true })
@@ -54,8 +55,8 @@ export async function createCharacter(interaction: ModalSubmitInteraction) {
     }
     initCharacter.description = characterDesc
     initCharacter.creator = interaction.user.id
-    const newChar = await container.characters.insertOne(result)
-    const result = await container.users.updateOne({ id: interaction.user.id }, { $push: { characters: newChar.insertedId } })
+    const newChar = await container.characters.insertOne(initCharacter)
+    const result = await container.users.updateOne({ userId: interaction.user.id }, { $push: { characters: newChar.insertedId } })
     if (result.modifiedCount !== 1) return interaction.reply({ content: 'An error occurred while creating the character.', ephemeral: true })
     
     interaction.reply({ content: 'Character created!', ephemeral: true })
