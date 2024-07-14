@@ -658,7 +658,7 @@ export class CharacterCommand extends Subcommand {
 	}
 
 	public async experiment(interaction: Subcommand.ChatInputCommandInteraction) {
-		await interaction.reply({ embeds: [
+		return await interaction.reply({ embeds: [
             {
                 title: 'Test',
                 description: 'This is a test',

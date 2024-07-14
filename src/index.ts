@@ -29,10 +29,6 @@ const client = new SapphireClient({
 	},
 	intents: [GatewayIntentBits.DirectMessages, GatewayIntentBits.GuildMessages, GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent],
 	loadMessageCommandListeners: true,
-	hmr: {
-		
-		enabled: true,
-	}
 });
 
 const main = async () => {

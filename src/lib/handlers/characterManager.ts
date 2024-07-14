@@ -37,7 +37,7 @@ export const CharacterModal = () => {
     return modal
 }
 
-export function createCharacter(interaction: ModalSubmitInteraction) {
+export async function createCharacter(interaction: ModalSubmitInteraction) {
     const characterName = interaction.fields.getField('chara-name').value
     const characterAvatar = interaction.fields.getField('chara-avatar').value
     const characterDesc = interaction.fields.getField('chara-desc').value
