@@ -26,7 +26,7 @@ declare module '@sapphire/framework' {
 		gl: GameLogic;
 		InventoryManager: InventoryManager;
 		GameManager: GameManager;
-		ownerId: string;
+		ownerId: string[];
 		effectTypes: { [key: string]: any };
 	}
 

@@ -11,7 +11,7 @@ export class OwnerOnlyPrecondition extends Precondition {
     }
     
     public determine(message: CommandInteraction) {
-        return message.user.id === this.container.ownerId ? this.ok() : this.error({ message: 'This command can only be used by the bot owner.' });
+        return this.container.ownerId.includes(message.user.id) ? this.ok() : this.error({ message: 'This command can only be used by the bot owner.' });
     }
 }
 

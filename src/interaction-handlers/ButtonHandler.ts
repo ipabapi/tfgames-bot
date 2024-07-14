@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
 import type { ButtonInteraction } from 'discord.js';
+import { CharacterModal } from '../lib/handlers/characterManager';
 
 export class ButtonHandler extends InteractionHandler {
     public constructor(ctx: InteractionHandler.LoaderContext, options: InteractionHandler.Options) {
@@ -23,6 +24,8 @@ export class ButtonHandler extends InteractionHandler {
         switch (interaction.customId){
             case `game-join`:
                 this.container.GameManager.choosePlayerAndDeck(interaction);
+            case 'create-character':
+                await interaction.showModal(CharacterModal())
             case `Add`:
                 this.add(interaction);
                 break;

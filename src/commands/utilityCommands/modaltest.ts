@@ -1,5 +1,5 @@
 import { Command } from "@sapphire/framework";
-import { ActionRowBuilder, ChatInputCommandInteraction, ModalActionRowComponentBuilder, ModalBuilder, TextInputBuilder } from "discord.js";
+import { ChatInputCommandInteraction } from "discord.js";
 
 
 export class ModalTestCommand extends Command {
@@ -7,7 +7,7 @@ export class ModalTestCommand extends Command {
         super(context, {
             name: 'modaltest',
             description: 'Test modals',
-            enabled: false,
+            enabled: true,
         });
         
     }
@@ -21,18 +21,25 @@ export class ModalTestCommand extends Command {
     }
 
     public override async chatInputRun(interaction: ChatInputCommandInteraction) {
-        // Create a modal
-        const modal = new ModalBuilder()
-            .setTitle('Modal Test')
-            .setCustomId('modal-test')
-          
-        const test = new TextInputBuilder()
-            .setCustomId('test')
-            .setLabel('Test')
-            .setPlaceholder('Test')
-            .setRequired(true);
-        const actionRowOne = new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(test);
-        modal.addComponents(actionRowOne);
-        return await interaction.showModal(modal);
+        await interaction.reply({ embeds: [
+            {
+                title: 'Test',
+                description: 'This is a test',
+                color: 0x00ff00
+            }
+        ],
+        components: [{
+            type: 1,
+            components: [
+                {
+                type: 2,
+                style: 1,
+                label: 'Create Character',
+                customId: 'create-character',
+                }
+            ]
+        }],
+        ephemeral: true
+        })
     }
 }

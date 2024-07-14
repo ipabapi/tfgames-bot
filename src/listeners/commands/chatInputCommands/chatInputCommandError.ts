@@ -6,7 +6,7 @@ export class UserEvent extends Listener<typeof Events.ChatInputCommandError> {
     public override async run(error: Error, { interaction }: ChatInputCommandErrorPayload) {
 
         //send error details to owner
-        if (this.container.ownerId != '') {
+        if (this.container.ownerId.length > 0) {
         try {//@ts-ignore
         const owner = await interaction.client.users.fetch(this.container.ownerId);
         this.container.logger.info(owner)

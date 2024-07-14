@@ -102,7 +102,7 @@ export class Force extends Subcommand {
 
     public async preVerify(interaction: Subcommand.ChatInputCommandInteraction) {
         if (!interaction.guild) return [false, 'This command can only be used in a server!'];
-        if (interaction.user.id == this.container.ownerId) return [true, ''];
+        if (this.container.ownerId.includes(interaction.user.id)) return [true, ''];
         if (!interaction.memberPermissions?.has(PermissionFlagsBits.ModerateMembers)) return [false, 'You do not have permission to use this command!'];
         return [true, ''];
     }

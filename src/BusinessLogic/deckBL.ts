@@ -2,6 +2,11 @@ import {container} from "@sapphire/framework";
 export class DeckBusinessLogic{
 public async CreateBaseDeck (playerId:string){
     console.log('Creating Base deck');
+    const deck = await container.deck.findOne({player: playerId, name: 'Starting Deck'})
+    if(deck){
+        console.log('Deck already exists');
+        return;
+    }
     container.deck.insertOne({
         player: playerId,
         name: 'Starting Deck',

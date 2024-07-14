@@ -46,6 +46,11 @@ export class CharacterCommand extends Subcommand {
 					name: 'list',
 					messageRun: 'list',
 					chatInputRun: 'list'
+				},
+				{
+					name: 'experiment',
+					messageRun: 'experiment',
+					preconditions: ['CompletedSetup']
 				}
 			]
 		});
@@ -101,6 +106,11 @@ export class CharacterCommand extends Subcommand {
 								.setDescription('The user to get the characters from, if none is given, it defaults to the author.')
 								.setRequired(false)
 						)
+				)
+				.addSubcommand((builder) =>
+					builder
+						.setName('experiment')
+						.setDescription('Test the new modal system')
 				)
 		);
 	}
@@ -644,5 +654,28 @@ export class CharacterCommand extends Subcommand {
 				}
 			]
 		});
+	}
+
+	public async experiment(interaction: Subcommand.ChatInputCommandInteraction) {
+		await interaction.reply({ embeds: [
+            {
+                title: 'Test',
+                description: 'This is a test',
+                color: 0x00ff00
+            }
+        ],
+        components: [{
+            type: 1,
+            components: [
+                {
+                type: 2,
+                style: 1,
+                label: 'Create Character',
+                customId: 'create-character',
+                }
+            ]
+        }],
+        ephemeral: true
+        })
 	}
 }

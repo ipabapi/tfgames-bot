@@ -53,7 +53,7 @@ const main = async () => {
 			container.utils = basicCommandUtils;
 			container.InventoryManager = new InventoryManager();
 			container.GameManager = new GameManager();
-			container.ownerId = process.env.OWNER_ID || '';
+			container.ownerId = process.env.OWNER_ID?.split(',') || [];
 			client.logger.info('Connected to MongoDB');
 		} catch (error) {
 			

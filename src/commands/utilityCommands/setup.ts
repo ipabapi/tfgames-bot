@@ -69,7 +69,13 @@ export class SetupCommand extends Command {
 					if (interaction.customId === 'accept') {
 						// Fill in the user object with the user's ID
 						userObj.userId = user.id;
-                        this.container.users.insertOne(userObj);
+                        const userExists = await container.users.find({userId: userObj.userId});
+						if (userExists) {
+							await interaction.reply({content: 'You have already accepted the terms. You can now use the bot. You can review the terms at any time by running `/policy`.\nHappy Transforming!', ephemeral: true});
+							collector.stop();
+							return
+						}
+						await container.users.insertOne(userObj)
 						await interaction.reply({content: 'You have accepted the terms. You can now use the bot. You can review the terms at any time by running `/policy`.\nHappy Transforming!', ephemeral: true});
 						container.deckBusinessLogic.CreateBaseDeck(userObj.userId);
 						collector.stop();
