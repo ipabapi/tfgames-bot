@@ -1,6 +1,6 @@
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
 import type { ModalSubmitInteraction } from 'discord.js';
-import { createCharacter } from '../lib/handlers/characterManager';
+import { createCharacter, editCharacter } from '../lib/handlers/characterManager';
 
 export class ModalHandler extends InteractionHandler {
   public constructor(ctx: InteractionHandler.LoaderContext, options: InteractionHandler.Options) {
@@ -11,9 +11,10 @@ export class ModalHandler extends InteractionHandler {
   }
 
   public override parse(interaction: ModalSubmitInteraction) {
-    console.log(interaction.customId)
-    switch (interaction.customId) {
-      case 'chara-modal':
+    switch (true) {
+      case interaction.customId === 'chara-modal':
+        return this.some();
+      case interaction.customId.startsWith('chara-edit'):
         return this.some();
       default:
         return this.none();
@@ -21,10 +22,12 @@ export class ModalHandler extends InteractionHandler {
   }
 
   public async run(interaction: ModalSubmitInteraction) {
-    console.log(interaction.customId)
-    switch (interaction.customId) {
-      case 'chara-modal':
+    switch (true) {
+      case interaction.customId === 'chara-modal':
         createCharacter(interaction);
+        break;
+      case interaction.customId.startsWith('chara-edit'):
+        editCharacter(interaction);
         break;
       default:
         console.log(`Modal not found`);

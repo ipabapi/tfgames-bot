@@ -1,7 +1,9 @@
-// @ts-nocheck
+
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
 import type { ButtonInteraction } from 'discord.js';
 import { CharacterModal } from '../lib/handlers/characterManager';
+import { Character } from '../lib/bot.types';
+import { ObjectId } from 'mongodb';
 
 export class ButtonHandler extends InteractionHandler {
     public constructor(ctx: InteractionHandler.LoaderContext, options: InteractionHandler.Options) {
@@ -10,20 +12,25 @@ export class ButtonHandler extends InteractionHandler {
             interactionHandlerType: InteractionHandlerTypes.Button
         });
     }
-
     // @ts-ignore
     public override parse(interaction: ButtonInteraction) {
         return this.some();
     }
 
     public async run(interaction: ButtonInteraction) {
-        if (interaction.customId == 'game-join') {
-            return this.container.GameManager.choosePlayerAndDeck(interaction);
+
+        if (interaction.customId.startsWith('edit-character')) {
+            const characterId = interaction.customId.split('-')[2];
+            const character = await this.container.characters.findOne({ _id: new ObjectId(characterId) }) as Character;
+            if (!character) return await interaction.reply('Character not found');
+            if (character.creator !== interaction.user.id) return await interaction.reply('You do not own this character');
+            return await interaction.showModal(CharacterModal(character))
         }
         
         switch (interaction.customId){
             case `game-join`:
                 this.container.GameManager.choosePlayerAndDeck(interaction);
+                break;
             case 'create-character':
                 await interaction.showModal(CharacterModal())
                 break;
