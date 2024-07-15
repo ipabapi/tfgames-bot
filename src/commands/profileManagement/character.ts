@@ -184,7 +184,7 @@ export class CharacterCommand extends Subcommand {
 		return interaction.reply({ embeds: [
 			{
 				title: 'Character Editing',
-				description: 'Welcome to character editing! Let\'s get started by clicking the button below. (This will open a Discord popup.)',
+				description: `Looks like you want to edit ${character.name}. Let's get started by clicking the button below. (This will open a Discord popup.)`,
 				color: 0x00ff00
 			}
 		],

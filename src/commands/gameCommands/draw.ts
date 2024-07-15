@@ -35,13 +35,13 @@ export class DrawCommand extends Command {
         if (!interaction.guild) return interaction.reply('This command can only be used in a server!');
         // Get game
         // @ts-ignore
-        const game = await this.container.game.findOne({channel: interaction.channel?.id});
+        const game = interaction.userData?.game;
         if (!game) return interaction.reply('No game found in this channel!');
         if (game.state.status == GameStatus.WAITINGFORPLAYERS) return interaction.reply('Game has not started yet!');
         // @ts-ignore
         if (!Object.keys(game.players).includes(interaction.user.id)) return interaction.reply('You are not in the game!');
         //@ts-ignore
-        if (game.state.currentPlayer.userId !== interaction.user.id) return interaction.reply('It is not your turn!');
+        if (game.state.currentPlayer !== interaction.user.id) return interaction.reply('It is not your turn!');
         if (game.state.status != GameStatus.TURNSTART) return interaction.reply('You\'ve already drawn a card this turn!');
         // Draw card
         // @ts-ignore

@@ -132,12 +132,24 @@ export class GameCommand extends Subcommand {
 		if (Object.keys(game.players).length < 1) {
 			await container.game.deleteOne({ channel: interaction.channel?.id });
 			return interaction.reply('You have left the game! The game has ended.');
+		} else if (game.state.status == GameStatus.WAITINGFORPLAYERS) {
+			await container.game.updateOne({ channel: interaction.channel?.id }, { $set: { players: game.players } });
+			return interaction.reply(
+				new MessageBuilder().setEmbeds([
+					{
+						title: `${interaction.user.displayName} has left the game!`,
+						description: `There are now ${Object.keys(game.players).length} players in the game.\n${Object.keys(game.players)
+							.map((player) => `<@${player}>`)
+							.join('\n')}`
+					}
+				])
+			);
 		} else {
 			const newState = await container.gl.removePlayer(game, interaction.user.id);
 			await container.game.updateOne({ channel: interaction.channel?.id }, { $set: { players: game.players, state: newState.state } });
-			if (game.state.currentPlayer?.userId != newState.state.currentPlayer?.userId) {
+			if (game.state.currentPlayer != newState.state.currentPlayer) {
 				interaction.channel?.send(
-					`It is now <@${newState.state.currentPlayer?.userId}>'s turn, as <@${game.state.currentPlayer?.userId}> has left the game.`
+					`It is now <@${newState.state.currentPlayer}>'s turn, as <@${game.state.currentPlayer}> has left the game.`
 				);
 			}
 			return interaction.reply(
@@ -285,9 +297,9 @@ export class GameCommand extends Subcommand {
 			await container.game.updateOne({ channel: interaction.channel?.id }, { $set: { players: game.players } });
 			if (newState.state.status != GameStatus.WAITINGFORPLAYERS) {
 
-			if (game.state.currentPlayer?.userId != newState.state.currentPlayer?.userId) {
+			if (game.state.currentPlayer != newState.state.currentPlayer) {
 				interaction.channel?.send(
-					`It is now <@${newState.state.currentPlayer?.userId}>'s turn, as <@${game.state.currentPlayer?.userId}> has been kicked from the game.`
+					`It is now <@${newState.state.currentPlayer}>'s turn, as <@${game.state.currentPlayer}> has been kicked from the game.`
 				);
 			}
 		}

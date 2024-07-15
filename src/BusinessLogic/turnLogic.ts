@@ -70,11 +70,11 @@ export class GameLogic {
             return game;
         }
 		// Check if there is anything in active steals
-		if (Object.keys(game.stealsActive).length >	0 && game.stealsActive[game.turnOrder[0].userId]) {
+		if (Object.keys(game.stealsActive).length >	0 && game.stealsActive[game.turnOrder[0]]) {
 				// If they are, advance the turn to the player who stole from them
-				const nextPlayer = game.stealsActive[game.turnOrder[0].userId];
-				delete game.stealsActive[game.turnOrder[0].userId];
-				const player = game.turnOrder.find((player) => player.userId === nextPlayer);
+				const nextPlayer = game.stealsActive[game.turnOrder[0]];
+				delete game.stealsActive[game.turnOrder[0]];
+				const player = game.turnOrder.find((player) => player === nextPlayer);
 				if (!player) {
 					throw new Error('Player not found, how did this happen?');
 				}
@@ -89,7 +89,7 @@ export class GameLogic {
 			throw new Error('Current player is undefined, how did this happen?');
 		}
         // Check if the current player is in turn order already, if so don't add them again
-        if (!game.turnOrder.find((player) => player.userId === game.currentPlayer?.userId)) {
+        if (!game.turnOrder.find((player) => player === game.currentPlayer)) {
             game.turnOrder.push(game.currentPlayer);
         }
 		game.pass = false;
@@ -109,9 +109,9 @@ export class GameLogic {
 		// Remove the player from the game
 		delete game.players[user];
 		// Remove the player from the turn order
-		game.state.turnOrder = game.state.turnOrder.filter((player) => player.userId !== user);
+		game.state.turnOrder = game.state.turnOrder.filter((player) => player !== user);
 		// If the player is the current player, advance the turn
-		if (game.state.currentPlayer?.userId === user) {
+		if (game.state.currentPlayer === user) {
 			game.state = await this.advanceTurn(game.state);
 		}
 		// Return the game
@@ -126,7 +126,7 @@ export class GameLogic {
 	 */
 	public async addPlayer(game: GameState, user: Player, channel: string) {
 		// insert player before last index of turn order
-		game.turnOrder.splice(game.turnOrder.length - 1, 0, user);
+		game.turnOrder.splice(game.turnOrder.length - 1, 0, user.userId);
 		await container.game.updateOne({ channel: channel }, { $set: { state: game } });
 		return game;
 	}
@@ -348,7 +348,7 @@ export class GameLogic {
             return [false, null, null]
         }
         if (game.state.failClaim != null) {
-            if (game.state.currentPlayer?.userId == interaction.user.id) {
+            if (game.state.currentPlayer == interaction.user.id) {
                 await interaction.editReply({ content: 'You can\'t apply any effects while under a fail!'})
                 return [false, null, null]
             }
@@ -356,13 +356,13 @@ export class GameLogic {
                 await interaction.editReply({ content: 'You are not the user who claimed this fail!'})
                 return [false, null, null]
             }
-        if (game.state.currentPlayer?.userId != target?.id) {
-            if (game.state.currentPlayer?.userId != target?.id) {
+        if (game.state.currentPlayer != target?.id) {
+            if (game.state.currentPlayer != target?.id) {
                 await interaction.editReply({ content: 'You are applying to a failed user, please select them.'})
                 return [false, null, null]
             }
         }
-        } else if (game.state.currentPlayer?.userId != interaction.user.id && !optionals) {
+        } else if (game.state.currentPlayer != interaction.user.id && !optionals) {
             await interaction.editReply({ content: 'It is not your turn'})
             return [false, null, null]
         }

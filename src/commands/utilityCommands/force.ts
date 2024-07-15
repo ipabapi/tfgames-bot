@@ -161,7 +161,7 @@ export class Force extends Subcommand {
         if (!newGameState) return interaction.reply('There was an error advancing the game!');
         if (!newGameState.currentPlayer) return interaction.reply('The game has an issue, please inform the developers!');
         await this.container.game.updateOne({ channel: interaction.channel?.id }, { $set: { state: newGameState } });
-        const nextPlayer = newGameState.currentPlayer.userId;
+        const nextPlayer = newGameState.currentPlayer;
         return interaction.reply(
             new MessageBuilder()
             .setContent(`<@${nextPlayer}>`)

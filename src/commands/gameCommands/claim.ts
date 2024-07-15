@@ -33,7 +33,7 @@ export class ClaimCommand extends Command {
         if (!Object.keys(game.players).includes(interaction.user.id)) return interaction.reply('You are not in the game!');
         //@ts-ignore
         if (GameStatus.TURNSTART == game.state.status) return interaction.reply('There is no fail to claim yet!');
-        if (game.state.currentPlayer.userId == interaction.user.id) return interaction.reply('You cannot claim your own fail!');
+        if (game.state.currentPlayer == interaction.user.id) return interaction.reply('You cannot claim your own fail!');
         if (game.state.failClaim != null) return interaction.reply(`Fail has already been claimed by <@${game.state.failClaim}>`);
         // Check if the fail is the last card
         if (!game.state.lastCard?.effect.tags.includes('fail')) return interaction.reply('There is no fail to claim!');
@@ -46,7 +46,7 @@ export class ClaimCommand extends Command {
         return interaction.reply({
             embeds: [{
                 title: 'Fail Claimed',
-                description: `<@${interaction.user.id}> has claimed the fail card! Now what will they do to <@${game.state.currentPlayer.userId}>?`,
+                description: `<@${interaction.user.id}> has claimed the fail card! Now what will they do to <@${game.state.currentPlayer}>?`,
             }]
         })
     }

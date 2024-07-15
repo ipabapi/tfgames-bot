@@ -30,7 +30,7 @@ export class PassCommand extends Command {
         if (!game) return interaction.reply('No game found in this channel!');
         if (game.state.status == GameStatus.WAITINGFORPLAYERS) return interaction.reply('Game has not started yet!');
         if (!Object.keys(game.players).includes(interaction.user.id)) return interaction.reply('You are not in the game!');
-        if (game.state.currentPlayer.userId !== interaction.user.id) return interaction.reply('It is not your turn!');
+        if (game.state.currentPlayer !== interaction.user.id) return interaction.reply('It is not your turn!');
         if (game.state.lastCard) {
             if (game.state.lastCard?.effect.tags.includes('fail')) return interaction.reply('You cannot pass your turn after drawing a fail card!');
         }
@@ -47,7 +47,7 @@ export class PassCommand extends Command {
                 state: newGameState
             }
         });
-        const nextPlayer = newGameState.currentPlayer.userId;
+        const nextPlayer = newGameState.currentPlayer
         return interaction.reply(new MessageBuilder()
             .setContent(`<@${nextPlayer}>`)
             .setEmbeds([{

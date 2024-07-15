@@ -53,7 +53,7 @@ export class UseItemCommand extends Command {
         if (!game) return interaction.reply('No game found in this channel!');
         if (!Object.keys(game.players).includes(interaction.user.id)) return interaction.reply('You are not in the game!');
         // check if it is the user's turn
-        if (game.state.currentPlayer?.userId !== interaction.user.id) return interaction.reply('It is not your turn!');
+        if (game.state.currentPlayer !== interaction.user.id) return interaction.reply('It is not your turn!');
         // check if it is the right game state
         if (![GameStatus.TURNSTART, GameStatus.WAITING, GameStatus.TURNEND].includes(game.state.status)) return interaction.reply('You can only use items during your turn!');
         // search for item in items:
@@ -63,7 +63,7 @@ export class UseItemCommand extends Command {
         let target = interaction.options.getUser('user')?.id || interaction.user.id;
         if (items[itemID].types.includes('steal') && target === interaction.user.id) {
             // find the first player in game.state.turnOrder that is not the current player
-            target = game.state.turnOrder.find((player) => player.userId !== interaction.user.id)?.userId || '';
+            target = game.state.turnOrder.find((player) => player !== interaction.user.id) || '';
         }
         const [successful, code, newGame] = await this.container.InventoryManager.useItem(player, interaction.guild.id, itemID, game, target);
         delete newGame._id; // to ensure that the _id is not updated on accident

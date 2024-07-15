@@ -7,6 +7,7 @@ export class AdvanceCommand extends Command {
         super(context, {
             description: 'Advance the game to the next turn',
             
+            
         });
     }
 
@@ -25,10 +26,10 @@ export class AdvanceCommand extends Command {
         if (game.state.status === 'WAITINGFORPLAYERS') return interaction.reply('The game has not started yet');
         if (!Object.keys(game.players).includes(interaction.user.id)) return interaction.reply('You are not in the game');
         if (game.lastCard) {
-        if (game.state.lastCard.tags.includes('fail') && game.state.currentPlayer.userId === interaction.user.id) return interaction.reply('You cannot advance the game after drawing a fail card');
+        if (game.state.lastCard.tags.includes('fail') && game.state.currentPlayer === interaction.user.id) return interaction.reply('You cannot advance the game after drawing a fail card');
         }
-        if (game.state.failClaim && game.state.currentPlayer.userId === interaction.user.id) return interaction.reply('You cannot advance the game, the user who has claimed the fail must advance the game');
-        if (!game.state.failClaim && game.state.currentPlayer.userId !== interaction.user.id) return interaction.reply('It is not your turn, so you cannot advance the game.');
+        if (game.state.failClaim && game.state.currentPlayer === interaction.user.id) return interaction.reply('You cannot advance the game, the user who has claimed the fail must advance the game');
+        if (!game.state.failClaim && game.state.currentPlayer !== interaction.user.id) return interaction.reply('It is not your turn, so you cannot advance the game.');
         if (game.state.failClaim && game.state.failClaim != interaction.user.id) return interaction.reply('You cannot advance the game, the user who has claimed the fail must advance the game');
         
         
@@ -37,7 +38,7 @@ export class AdvanceCommand extends Command {
         if (!newGameState.currentPlayer) return interaction.reply('The game has an issue, please inform the developers.');
         await this.container.game.updateOne({channel: interaction.channel?.id}, {$set: {state: newGameState}});
         console.log(newGameState.currentPlayer)
-        const nextPlayer = newGameState.currentPlayer.userId;
+        const nextPlayer = newGameState.currentPlayer;
         return interaction.reply(new MessageBuilder()
             .setContent(`<@${nextPlayer}>`)
             .setEmbeds([{

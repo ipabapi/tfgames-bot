@@ -12,7 +12,7 @@ export class IsTurnPrecondition extends Precondition {
     }
 
     public checkGame(message: CommandInteraction) {
-        return message.userData?.game?.state.currentPlayer?.userId === message.user.id ? this.ok() : this.error({ message: 'It is not your turn.',
+        return message.userData?.game?.state.currentPlayer === message.user.id ? this.ok() : this.error({ message: 'It is not your turn.',
         context: { silent: false}
          });
     }

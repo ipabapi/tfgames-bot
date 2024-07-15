@@ -109,8 +109,8 @@ export interface Game {
 }
 
 export interface GameState {
-    currentPlayer: Player | null; // the player whose turn it is
-    turnOrder: Player[]; // the order of the players
+    currentPlayer: string | null; // the player whose turn it is
+    turnOrder: string[]; // the order of the players
     extraTurnUsed: boolean; // if an extra turn has been used
     extraTurn: boolean; // if we are in an extra turn
     stealsActive: {
@@ -120,7 +120,7 @@ export interface GameState {
     deck: string[]; // the deck of cards
     discard: string[]; // the discard pile
     lastCard: Card | null; // the last card played
-    lastPlayer: Player | null; // the last player to play a card
+    lastPlayer: string | null; // the last player to play a card
     failClaim: string | null; // the player that has claimed a fail
     status: GameStatus; // the status of the game
     turn: number; // the current turn
