@@ -38,7 +38,11 @@ export async function addGold(playerId: string, amount: number, guildId: string)
     }
     console.log("owo:",result.guilds[guildId].gold)
     const guild = result.guilds[guildId];
+    if (guild.gold == null){
+        guild.gold = amount;
+    }else{
     guild.gold += amount;
+    }
     const final = { ...result.guilds, [guildId]: guild };
     console.log("uwu:",final[guildId].gold)
     await container.users.updateOne({ userId: playerId }, { $set: { guilds: final } });

@@ -215,26 +215,26 @@ export class GameLogic {
 		if (!player) {
 			return [game, false, 'Player not found, are you sure they are in the game?'];
 		}
-		// Apply the effect
-		const character = await container.characters.findOne({ _id: new ObjectId(game.players[player].character) });		if (!character) {
+		const character = await container.characters.findOne({ _id: new ObjectId(game.players[player].character) });
+		if (!character) {
 			return [game, false, 'Character not found, how did this happen?'];
 		}
 		const success = await container.characters.updateOne(
-			{ id: game.players[player].character },
+			{ _id: new ObjectId(character._id) },
 			{
 				$set: {
 					avatar: avatar
 				}
 			}
 		);
-		if (!success) {
-			return [game, false, 'Avatar not changed, how did this happen?'];
-		}
 		if (game.state.pass) {
 			await container.game.updateOne({ channel: game.channel }, { $set: { 'state.pass': false } });
 		}
-		game.state.pass = false;
+		if (!success) {
+			return [game, false, 'Effect not applied, how did this happen?'];
+		}
 		// Return the game
+		game.state.pass = false;
 		return [game, true, ''];
 	}
 
@@ -253,21 +253,21 @@ export class GameLogic {
 			return [game, false, 'Character not found, how did this happen?'];
 		}
 		const success = await container.characters.updateOne(
-			{ id: game.players[player].character },
+			{ _id: new ObjectId(character._id) },
 			{
 				$set: {
 					description: description
 				}
 			}
 		);
-		if (!success) {
-			return [game, false, 'Description not changed, how did this happen?'];
-		}
 		if (game.state.pass) {
 			await container.game.updateOne({ channel: game.channel }, { $set: { 'state.pass': false } });
 		}
-		game.state.pass = false;
+		if (!success) {
+			return [game, false, 'Effect not applied, how did this happen?'];
+		}
 		// Return the game
+		game.state.pass = false;
 		return [game, true, ''];
 	}
 

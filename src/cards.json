@@ -2,11 +2,12 @@
     {
         "stringID": "card_0001",
         "name": "Body Transformation",
-        "image": "https://i.ibb.co/4WvPhVm/bodyTF.jpg",
+        "image": "https://i.ibb.co/58wsV1X/Body-TF.png",
         "description": "",
         "effect": {
             "tags": [
                 "body",
+                "physical",
                 "single-target",
                 "transformation",
                 "general",
@@ -27,7 +28,7 @@
     {
         "stringID": "card_0002",
         "name": "Mind Transformation",
-        "image": "https://i.ibb.co/YdstRjv/mindTF.jpg",
+        "image": "https://i.ibb.co/30nQNdn/MindTF.png",
         "description": "",
         "effect": {
             "tags": [
@@ -52,7 +53,7 @@
     {
         "stringID": "card_0003",
         "name": "Name Change",
-        "image": "https://i.ibb.co/d5jLMRw/nameTF.jpg",
+        "image": "https://i.ibb.co/k012Kcd/Name-Change.png",
         "description": "",
         "effect": {
             "tags": [
@@ -77,7 +78,7 @@
     {
         "stringID": "card_0004",
         "name": "Inanimate Transformation",
-        "image": "https://i.ibb.co/brm4tLZ/inanimate-TF.jpg",
+        "image": "https://i.ibb.co/w0Y5Gfv/Inanimate-TF.png",
         "description": "",
         "effect": {
             "tags": [
@@ -102,7 +103,7 @@
     {
         "stringID": "card_0005",
         "name": "Absorption",
-        "image": "https://i.ibb.co/6NJBvMs/absorbTF.jpg",
+        "image": "https://i.ibb.co/3m900nD/ABSORPTION.png",
         "description": "",
         "effect": {
             "tags": [
@@ -127,7 +128,7 @@
     {
         "stringID": "card_0006",
         "name": "Body Swap",
-        "image": "https://i.ibb.co/qpqbWfx/bodyswap-TF.jpg",
+        "image": "https://i.ibb.co/L1gtFgv/Body-Swap.png",
         "description": "",
         "effect": {
             "tags": [
@@ -152,7 +153,7 @@
     {
         "stringID": "card_0007",
         "name": "Cleanse",
-        "image": "https://i.ibb.co/LNC0wdZ/cleanse-IT.jpg",
+        "image": "https://i.ibb.co/12FtzfW/Cleanse.png",
         "description": "",
         "effect": {
             "tags": [
@@ -176,7 +177,8 @@
     {
         "stringID": "card_0008",
         "name": "Fail",
-        "description": "https://i.ibb.co/92VJGzJ/failSys.jpg",
+        "image": "https://i.ibb.co/SPP2BXx/Fail.png",
+        "description": "",
         "effect": {
             "tags": [
                 "fail",
@@ -200,7 +202,7 @@
     {
         "stringID": "card_0009",
         "name": "Luck",
-        "image": "https://i.ibb.co/zhkktPf/luckySys.jpg",
+        "image": "https://i.ibb.co/8PCrcFR/Luck-var.png",
         "description": "",
         "effect": {
             "tags": [
@@ -225,7 +227,7 @@
     {
         "stringID": "card_0010",
         "name": "Shield",
-        "image": "https://i.ibb.co/4F6psbh/shieldIT.jpg",
+        "image": "https://i.ibb.co/p1y81jZ/Shield.png",
         "description": "",
         "effect": {
             "tags": [
@@ -250,7 +252,7 @@
     {
         "stringID": "card_0011",
         "name": "Reverse",
-        "image": "https://i.ibb.co/Kj7hmqR/reverse-IT.jpg",
+        "image": "https://i.ibb.co/LJxXz5t/Reverse.png",
         "description": "",
         "effect": {
             "tags": [
@@ -297,7 +299,7 @@
     {
         "stringID": "card_0013",
         "name": "Steal",
-        "image": "https://i.ibb.co/V9W4Nty/stealIT.jpg",
+        "image": "https://i.ibb.co/6Fkfs2m/Steal.png",
         "description": "",
         "effect": {
             "tags": [
@@ -321,6 +323,7 @@
     {
         "stringID": "card_0014",
         "name": "10 Gold",
+        "image": "https://i.ibb.co/w0W2nqW/10-Gold.png",
         "description": "",
         "effect": {
             "tags": [
@@ -344,6 +347,7 @@
     {
         "stringID": "card_0015",
         "name": "20 Gold",
+        "image": "https://i.ibb.co/n37qmKX/20-Gold.png",
         "description": "",
         "effect": {
             "tags": [
@@ -367,6 +371,7 @@
     {
         "stringID": "card_0016",
         "name": "30 Gold",
+        "image": "https://i.ibb.co/P1vY3VY/30-Gold.png",
         "description": "",
         "effect": {
             "tags": [

@@ -265,13 +265,17 @@ export class Apply extends Subcommand {
         if (!verified) {
             return
         }
+        console.log("changing avatar")
         // @ts-ignore
-        if (!container.gl.checkEffect(game?.state.lastCard, 'name') || container.gl.checkEffect(game?.state.lastCard, 'mental')) {
+        if (!container.gl.checkEffect(game?.state.lastCard, 'body')) {
             await interaction.reply({ content: 'This card is not an avatar change card', ephemeral: true })
             return
         }
         const target = interaction instanceof MessageComponentInteraction ? optionals?.target : interaction.options.getUser('target')
         const avatar = interaction instanceof MessageComponentInteraction ? optionals?.effect : interaction.options.getString('avatar')
+        console.log(avatar)
+        // @ts-ignore
+        console.log(target.username)
         if (!target || !avatar) {
             await interaction.reply({ content: 'Invalid target or avatar', ephemeral: true })
             return
@@ -315,7 +319,7 @@ export class Apply extends Subcommand {
             return
         }
         // @ts-ignore
-        if (container.gl.checkEffect(game?.state.lastCard, 'name')) {
+        if (container.gl.checkEffect(game?.state.lastCard, 'description')) {
             await interaction.reply({ content: 'This card does not let you change descriptions.', ephemeral: true })
             return
         }
