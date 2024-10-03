@@ -188,21 +188,21 @@ export class GameLogic {
 			return [game, false, 'Character not found, how did this happen?'];
 		}
 		const success = await container.characters.updateOne(
-			{ id: game.players[player].character },
+			{ _id: new ObjectId(character._id) },
 			{
 				$set: {
 					name: name
 				}
 			}
 		);
-		if (!success) {
-			return [game, false, 'Name not changed, how did this happen?'];
-		}
 		if (game.state.pass) {
 			await container.game.updateOne({ channel: game.channel }, { $set: { 'state.pass': false } });
 		}
-		game.state.pass = false;
+		if (!success) {
+			return [game, false, 'Effect not applied, how did this happen?'];
+		}
 		// Return the game
+		game.state.pass = false;
 		return [game, true, ''];
 	}
 
@@ -252,6 +252,7 @@ export class GameLogic {
 		if (!character) {
 			return [game, false, 'Character not found, how did this happen?'];
 		}
+		console.log(description)
 		const success = await container.characters.updateOne(
 			{ _id: new ObjectId(character._id) },
 			{
@@ -263,6 +264,7 @@ export class GameLogic {
 		if (game.state.pass) {
 			await container.game.updateOne({ channel: game.channel }, { $set: { 'state.pass': false } });
 		}
+		console.log(success)
 		if (!success) {
 			return [game, false, 'Effect not applied, how did this happen?'];
 		}

@@ -286,6 +286,9 @@ export class Apply extends Subcommand {
             title: 'Avatar Changed',
             description: `${target.username} has been changed to ${avatar}`,
             color: 0x00ff00,
+            image: {
+                url: avatar,
+            },
             footer: { text:`Applied by ${interaction.user.username}` }
         }, 'avatar', avatar)
         if (!result) {
@@ -314,17 +317,20 @@ export class Apply extends Subcommand {
 
     public async descriptionchange(interaction: Subcommand.ChatInputCommandInteraction | MessageComponentInteraction, optionals?: optionalProps)  {
         // @ts-ignore
+        console.log("entered")
         const [verified, _player, game] = await container.gl.verifyRequest(interaction, optionals)
         if (!verified) {
             return
         }
         // @ts-ignore
-        if (container.gl.checkEffect(game?.state.lastCard, 'description')) {
-            await interaction.reply({ content: 'This card does not let you change descriptions.', ephemeral: true })
+        if (!container.gl.checkEffect(game?.state.lastCard, 'description')) {
+            await interaction.reply({ content: 'This card does not let you change the description', ephemeral: true })
             return
         }
+        console.log("checked effect")
         const target = interaction instanceof MessageComponentInteraction ? optionals?.target : interaction.options.getUser('target')
         const description = interaction instanceof MessageComponentInteraction ? optionals?.effect : interaction.options.getString('description')
+        console.log(description)
         if (!target || !description) {
             await interaction.reply({ content: 'Invalid target or description', ephemeral: true })
             return
