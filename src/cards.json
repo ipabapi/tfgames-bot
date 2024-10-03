@@ -8,6 +8,7 @@
             "tags": [
                 "body",
                 "physical",
+                "avatar",
                 "single-target",
                 "transformation",
                 "general",
@@ -83,6 +84,7 @@
         "effect": {
             "tags": [
                 "inanimate",
+                "avatar",
                 "single-target",
                 "transformation",
                 "general",
@@ -108,6 +110,7 @@
         "effect": {
             "tags": [
                 "absorption",
+                "avatar",
                 "single-target",
                 "transformation",
                 "general",
