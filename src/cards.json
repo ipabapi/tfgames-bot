@@ -394,5 +394,122 @@
         },
         "type": "GOLD",
         "rarity": "UNCOMMON"
+    },
+    {
+        "stringID": "card_0017",
+        "name": "Pool toy",
+        "image": "https://static1.e621.net/data/sample/dc/a2/dca20d496375c412e49371895772b274.jpg",
+        "description": "",
+        "effect": {
+            "tags": [
+                "body",
+                "single-target",
+                "transformation",
+                "general"
+            ],
+            "action": "transform",
+            "singleTarget": true,
+            "targetSelf": false,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "TF",
+        "rarity": "UNCOMMON",
+        "customForm": {
+            "name": "A cute inflatable pooltoy",
+            "description": "A magically animate pooltoy",
+            "image": "https://static1.e621.net/data/sample/dc/a2/dca20d496375c412e49371895772b274.jpg   "
+        }
+    },
+    {
+        "stringID": "card_0018",
+        "name": "GOBBOFICATION!",
+        "image": "https://i.ibb.co/xqdz7bF/gobbofication.png",
+        "description": "",
+        "effect": {
+            "tags": [
+                "body",
+                "single-target",
+                "transformation",
+                "general"
+            ],
+            "action": "transform",
+            "singleTarget": true,
+            "targetSelf": false,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL",
+                "HARDCORE"
+            ]
+        },
+        "type": "TF",
+        "rarity": "UNCOMMON",
+        "customForm": {
+            "name": "Gobbo",
+            "description": "A smol green adorable gobbo! Who knows what they used to be before",
+            "image": "https://static1.e621.net/data/sample/b7/71/b771b0717e304aae75d043c22297c191.jpg"
+        }
+    },
+    {
+        "stringID": "card_0019",
+        "name": "Jack-O-Boobies",
+        "image": "https://i.ibb.co/C5pkDHR/jackoboobies.png",
+        "description": "",
+        "effect": {
+            "tags": [
+                "body",
+                "single-target",
+                "transformation",
+                "general"
+            ],
+            "action": "transform",
+            "singleTarget": true,
+            "targetSelf": false,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "TF",
+        "rarity": "UNCOMMON",
+        "customForm": {
+            "name": "Pumpkin Lady",
+            "description": "A walking and very busty pumpkin. Kinda fitting for the season!",
+            "image": "https://static1.e621.net/data/sample/ab/5f/ab5feba5f8388ae5ada91abae7b42d61.jpg"
+        }
+    },
+    {
+        "stringID": "card_0020",
+        "name": "Green and Scary",
+        "image": "https://i.ibb.co/b7vvQYS/greennscary.png",
+        "description": "",
+        "effect": {
+            "tags": [
+                "body",
+                "single-target",
+                "transformation",
+                "general"
+            ],
+            "action": "transform",
+            "singleTarget": true,
+            "targetSelf": false,
+            "multiTarget": false,
+            "randomTarget": false,
+            "allowedModes": [
+                "NORMAL", "HARDCORE"
+            ]
+        },
+        "type": "TF",
+        "rarity": "UNCOMMON",
+        "customForm": {
+            "name": "Halloween Gobbo",
+            "description": "Even the gobbos are getting in the halloween spirit. This one even dressed up for the occasion",
+            "image": "https://static1.e621.net/data/sample/f1/90/f190d44e06f0b0e4932f3f8b0260a8e6.jpg"
+        }
     }
 ]

@@ -25,7 +25,7 @@ export class AdvanceCommand extends Command {
         if (game.state.status === 'WAITINGFORPLAYERS') return interaction.reply('The game has not started yet');
         if (!Object.keys(game.players).includes(interaction.user.id)) return interaction.reply('You are not in the game');
         if (game.lastCard) {
-        if (game.state.lastCard.tags.includes('fail') && game.state.currentPlayer.userId === interaction.user.id) return interaction.reply('You cannot advance the game after drawing a fail card');
+        if (game.state.lastCard.tags.includes('fail') && !game.state.failClaim) return interaction.reply('You cannot advance the game after drawing a fail card');
         }
         if (game.state.failClaim && game.state.currentPlayer.userId === interaction.user.id) return interaction.reply('You cannot advance the game, the user who has claimed the fail must advance the game');
         if (!game.state.failClaim && game.state.currentPlayer.userId !== interaction.user.id) return interaction.reply('It is not your turn, so you cannot advance the game.');

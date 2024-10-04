@@ -20,11 +20,22 @@ export async function gameSetup(interaction: Command.ChatInputCommandInteraction
     interaction.channel?.send({ content: `Okay... I grabbed ${decks.length} decks, containing ${decks.reduce((acc, deck) => acc + deck?.cardIds.length, 0)} cards. Let's shuffle them up...` });
 
     const finalCards = decks.flatMap(deck => deck ? deck.cardIds : []);
+    if (container.event){
+        interaction.channel?.send({ content: `Looks like its spooky season. Ill be shuffling in some special cards just for this time of year` });
+        const eventDecks = container.eventDeck.find();
+        for await (const doc of eventDecks) {
+
+           decks.push(doc)
+
+        }
+        
+    }
     // Shuffle the cards
     for (let i = finalCards.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [finalCards[i], finalCards[j]] = [finalCards[j], finalCards[i]];
     }
+    
 
     game.state.deck = finalCards;
     interaction.channel?.send({ content: `Now I'm going to set up the turn order...` });
@@ -43,7 +54,7 @@ export async function gameSetup(interaction: Command.ChatInputCommandInteraction
 
     interaction.channel?.send({ content: `Looks like we'll be starting with <@${game.state.currentPlayer.userId}>!\nThe turn order after that is:\n${game.state.turnOrder.map(player => `<@${player.userId}>`).join(' =>\n')}.` });
 
-    interaction.channel?.send({ content: `Please wait while I let Ren know we have another game starting!` });
+    interaction.channel?.send({ content: `Please wait while I unbingle everything for another round` });
     game.state.turn = 1;
     // Save the game state
     // TODO: Card draw function implementation

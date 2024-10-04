@@ -1,5 +1,5 @@
 import { container } from '@sapphire/framework';
-import { GameState, Game, GameStatus, Player, Card, CardType } from '../lib/bot.types';
+import {GameState, Game, GameStatus, Player, Card, CardType, CustomForm} from '../lib/bot.types';
 import { ObjectId } from 'mongodb';
 import { Subcommand } from '@sapphire/plugin-subcommands';
 import { MessageComponentInteraction, User, APIEmbed, ComponentType } from 'discord.js';
@@ -224,6 +224,45 @@ export class GameLogic {
 			{
 				$set: {
 					avatar: avatar
+				}
+			}
+		);
+		if (game.state.pass) {
+			await container.game.updateOne({ channel: game.channel }, { $set: { 'state.pass': false } });
+		}
+		if (!success) {
+			return [game, false, 'Effect not applied, how did this happen?'];
+		}
+		// Return the game
+		game.state.pass = false;
+		return [game, true, ''];
+	}
+
+	public async customForm(game: Game, form: CustomForm, targetUser: string) {
+		console.log("applying")
+		if (!form) {
+			return [game, false, 'form is empty'];
+		}
+		// Find the player
+		const player = Object.keys(game.players).find((player) => player === targetUser);
+		if (!player) {
+			return [game, false, 'Player not found, are you sure they are in the game?'];
+		}
+		console.log("applying2")
+		const character = await container.characters.findOne({ _id: new ObjectId(game.players[player].character) });
+		if (!character) {
+			return [game, false, 'Character not found, how did this happen?'];
+		}
+		console.log("applying3")
+		form = form as CustomForm;
+		console.log(form)
+		const success = await container.characters.updateOne(
+			{ _id: new ObjectId(character._id) },
+			{
+				$set: {
+					avatar: form.image,
+					name: form.name,
+					description: form.description
 				}
 			}
 		);

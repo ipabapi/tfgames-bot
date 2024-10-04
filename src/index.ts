@@ -22,6 +22,8 @@ declare module '@sapphire/framework' {
 		game: import('mongodb').Collection;
 		deck: import('mongodb').Collection;
 		cards: import('mongodb').Collection;
+		eventDeck: import('mongodb').Collection;
+		event: boolean;
 		guilds: import('mongodb').Collection;
 		characters: import('mongodb').Collection;
 		gl: GameLogic;
@@ -67,9 +69,12 @@ const main = async () => {
 			container.cards = container.db.collection('cards');
 			container.guilds = container.db.collection('guilds');
 			container.characters = container.db.collection('characters');
+			container.eventDeck = container.db.collection('eventDeck');
 			container.utils = basicCommandUtils;
 			container.InventoryManager = new InventoryManager();
 			container.ownerId = process.env.OWNER_ID || '';
+			// Set to true to enable event
+			container.event = true;
 			client.logger.info('Connected to MongoDB');
 		} catch (error) {
 			

@@ -173,6 +173,7 @@ export interface Card {
     effect: CardEffect;
     type: CardType;
     rarity: CardRarity;
+    customForm?: CustomForm
 }
 
 export interface CardEffect {
@@ -183,6 +184,13 @@ export interface CardEffect {
     targetSelf: boolean;
     randomTarget: boolean;
     allowedModes: GameMode[];
+}
+
+export interface CustomForm{
+    name: string;
+    description: string;
+    image: string;
+
 }
 
 export enum CardType {

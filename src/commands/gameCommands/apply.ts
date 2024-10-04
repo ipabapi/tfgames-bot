@@ -1,6 +1,7 @@
 import { Subcommand } from '@sapphire/plugin-subcommands';
 import { container } from '@sapphire/framework';
 import {  MessageComponentInteraction, User} from 'discord.js';
+import {Game} from "../../lib/bot.types";
 
 
 // apply
@@ -56,7 +57,13 @@ export class Apply extends Subcommand {
 					name: 'bodyswap',
 					messageRun: 'bodyswap',
 					chatInputRun: 'bodyswap'
-				}
+				},
+                {
+                    name: 'customform',
+                    messageRun: 'customform',
+                    chatInputRun: 'customform'
+                }
+                
 			]
 		});
         this.container.effectTypes = {
@@ -110,6 +117,12 @@ export class Apply extends Subcommand {
                     .addUserOption((option) => option.setName('target').setDescription('The target of the body swap').setRequired(true))
                     .addUserOption((option) => option.setName('swaptarget').setDescription('The target to swap with').setRequired(true))
                 )
+                .addSubcommand((command) =>
+                command
+                    .setName('customform')
+                    .setDescription('Apply a custom form')
+                    .addUserOption((option) => option.setName('target').setDescription('The target of the avatar change').setRequired(true))
+            )
 
 		);
 	}
@@ -423,6 +436,52 @@ export class Apply extends Subcommand {
         })
         
         
+    }
+
+    public async customform(interaction: Subcommand.ChatInputCommandInteraction | MessageComponentInteraction, optionals?: optionalProps) {
+        // @ts-ignore
+        const [verified, _player, game] = await container.gl.verifyRequest(interaction, optionals)
+        if (!verified) {
+            return
+        }
+        //TODO fix
+        // @ts-ignore
+        if (!container.gl.checkEffect(game?.state.lastCard, 'custom')) {
+            await interaction.reply({ content: 'This card is not a custom form card', ephemeral: true })
+            return
+        }
+        const target = interaction instanceof MessageComponentInteraction ? optionals?.target : interaction.options.getUser('target')
+        if (!target) {
+            await interaction.reply({ content: 'Invalid target or effect', ephemeral: true })
+            return
+        }
+        
+        // apply effect to target using gl applyEffect
+        // @ts-ignore
+        const customForm = (game as Game)?.state.lastCard.customForm
+        // @ts-ignore
+        const result = await container.gl.waitForShieldOrReverse(game, target, interaction, {
+            title: 'Effect Applied',
+            description: `${target.username} has been targeted by the following custom form:\n ${customForm?.name || ""}`,
+            color: 0x00ff00,
+            footer: { text:`Applied by ${interaction.user.username}` }
+        }, 'physical', '')
+        // @ts-ignore
+        const [_state, passed, msg] = await container.gl.customForm(game, customForm, target.id)
+        if (!passed) {
+            // @ts-ignore
+            await interaction.reply({ content: msg, ephemeral: true })
+            return
+        }
+        await interaction.editReply({ content: 'The effect has been applied.' })
+        return await interaction.channel?.send({
+            embeds: [{
+                title: 'Effect Applied',
+                description: `${target.username} has been turned into ${customForm?.name || ""}. **Since both players chose to do nothing, the effect has been applied.**`,
+                color: 0x00ff00,
+                footer: { text:`Applied by ${interaction.user.username}` }
+            }]
+        })
     }
 
     
