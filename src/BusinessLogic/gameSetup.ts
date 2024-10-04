@@ -19,17 +19,22 @@ export async function gameSetup(interaction: Command.ChatInputCommandInteraction
 
     interaction.channel?.send({ content: `Okay... I grabbed ${decks.length} decks, containing ${decks.reduce((acc, deck) => acc + deck?.cardIds.length, 0)} cards. Let's shuffle them up...` });
 
-    const finalCards = decks.flatMap(deck => deck ? deck.cardIds : []);
+    let finalCards = decks.flatMap(deck => deck ? deck.cardIds : []);
     if (container.event){
         interaction.channel?.send({ content: `Looks like its spooky season. Ill be shuffling in some special cards just for this time of year` });
         const eventDecks = container.eventDeck.find();
         for await (const doc of eventDecks) {
 
-           decks.push(doc)
-
+           finalCards = finalCards.concat(doc.cardIds)
+            console.log("adding event cards")
         }
+        console.log("afdgklfd")
+        
         
     }
+    
+    console.log(finalCards.length)
+    console.log(finalCards)
     // Shuffle the cards
     for (let i = finalCards.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));

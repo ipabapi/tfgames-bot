@@ -69,7 +69,7 @@ const main = async () => {
 			container.cards = container.db.collection('cards');
 			container.guilds = container.db.collection('guilds');
 			container.characters = container.db.collection('characters');
-			container.eventDeck = container.db.collection('eventDeck');
+			container.eventDeck = container.db.collection('EventDeck');
 			container.utils = basicCommandUtils;
 			container.InventoryManager = new InventoryManager();
 			container.ownerId = process.env.OWNER_ID || '';
